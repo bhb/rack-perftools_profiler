@@ -4,13 +4,17 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "rack-perftools-profiler"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
-    gem.email = "ben@devver.net"
-    gem.homepage = "http://github.com/devver/rack-perftools-profiler"
-    gem.authors = ["Ben Brinckerhoff"]
-    gem.add_development_dependency "thoughtbot-shoulda"
+    gem.name = 'rack-perftools_profiler'
+    gem.summary = %Q{Middleware for profiling Rack-compatible apps using perftools.rb}
+    gem.description = %Q{Middleware for profiling Rack-compatible apps using perftools.rb}
+    gem.email = 'ben@bbrinck.com'
+    gem.homepage = 'http://github.com/bhb/rack-perftools_profiler'
+    gem.authors = ['Ben Brinckerhoff']
+    gem.add_dependency 'perftools.rb', '~> 0.4.0'
+    gem.add_dependency 'rack', '~> 1.1.0'
+    gem.add_dependency('open4', '~> 1.0.1')
+    gem.add_development_dependency 'shoulda', '~> 2.10.2'
+    gem.add_development_dependency 'mocha', '~> 0.9.8'
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
@@ -51,7 +55,7 @@ Rake::RDocTask.new do |rdoc|
   end
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "rack-perftools-profiler #{version}"
+  rdoc.title = "rack-perftools_profiler #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end

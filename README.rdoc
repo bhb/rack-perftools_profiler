@@ -1,6 +1,98 @@
-= rack-perftools-profiler
+= Rack::PerftoolsProfiler
 
-Description goes here.
+Middleware for profiling Rack-compatible apps using perftools.rb (http://github.com/tmm1/perftools.rb)
+
+== Requirements
+
+You'll need graphviz to generate call graphs using dot (for the GIF printer):
+
+  sudo port install graphviz     # OS X
+  brew install graphviz          # Homebrew
+  sudo apt-get install graphviz  # Debian/Ubuntu
+
+You'll need ps2pdf to generate PDFs (On OS X, ps2pdf comes is installed as part of Ghostscript)
+ 
+  sudo port install ghostscript  # OSX
+  brew install ghostscript       # Homebrew
+  sudo apt-get install ps2pdf    # Debian/Ubuntu
+
+== Configuration
+
+Install the gem
+
+  gem install rack-perftools_profiler
+
+Include the middleware
+
+  require 'rack/perftools_profiler'
+
+For Rails, add the following to config/environment.rb
+
+   config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
+
+For Sinatra, call 'use' inside a configure block, like so:
+
+  configure :profiling do
+    use Rack::PerftoolsProfiler, :default_printer => 'gif'
+  end
+
+For Rack::Builder, call 'use' inside the Builder constructor block
+
+  Rack::Builder.new do
+    use Rack::PerftoolsProfiler, :default_printer => 'gif'
+  end
+    
+== Options
+
+* :default_printer - can be set to 'text', 'gif', or 'pdf'. Default is :text
+* :mode            - can be set to 'cputime' or 'walltime'. Default is :cputime
+* :frequency       - in :cputime mode, the number of times per second the app will be sampled. Default is 100 (times/sec)
+
+== Usage 
+
+There are two modes for the profiler
+
+First, you can run in 'simple' mode. Just visit the url you want to profile, but
+add the 'profile' and (optionally) the 'times' GET params (which will rerun the action
+the specified number of times).
+
+Example: 
+  curl http://localhost:8080/foobar?profile=true&times=3
+
+Note that this will change the status, body, and headers of the response (you'll get
+back the profiling data, NOT the original response).
+
+The other mode is start/stop mode.
+
+Example:
+  curl http://localhost:8080/__start__
+  curl http://localhost:8080/foobar
+  curl http://localhost:8080/foobaz
+  curl http://localhost:8080/__stop__
+  curl http://localhost:8080/__data__
+
+In this mode, all responses are normal. You must visit `__stop__` to complete profiling and
+then you can view the profiling data by visiting `__data__`
+
+== Profiling Data Options
+
+In both simple and start/stop modes, you can add additional params to change how the data
+is displayed. In simple mode, these params are just added to the URL being profiled. In
+start/stop mode, they are added to the `__data__` URL
+
+* printer - overrides the default_printer option (see above)
+* ignore  - a regular expression of the area of code to ignore 
+* focus   - a regular expression of the area of code to solely focus on.
+
+(for 'ignore' and 'focus', please see http://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html#pprof
+for more details)
+
+== Acknowledgments
+
+A huge thanks to Aman Gupta for the awesome perftools.rb gem.
+
+The basic idea and initial implementation of the middleware was heavily influenced by 
+Rack::Profiler from rack-contrib.
 
 == Note on Patches/Pull Requests
  
