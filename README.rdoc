@@ -73,14 +73,14 @@ Example:
   curl http://localhost:8080/__stop__
   curl http://localhost:8080/__data__
 
-In this mode, all responses are normal. You must visit `__stop__` to complete profiling and
-then you can view the profiling data by visiting `__data__`
+In this mode, all responses are normal. You must visit \_\_stop\_\_ to complete profiling and
+then you can view the profiling data by visiting \_\_data\_\_
 
 == Profiling Data Options
 
 In both simple and start/stop modes, you can add additional params to change how the data
 is displayed. In simple mode, these params are just added to the URL being profiled. In
-start/stop mode, they are added to the `__data__` URL
+start/stop mode, they are added to the \_\_data\_\_ URL
 
 * printer - overrides the default_printer option (see above)
 * ignore  - a regular expression of the area of code to ignore 
@@ -103,8 +103,7 @@ Rack::Profiler from rack-contrib.
 * Add tests for it. This is important so I don't break it in a
   future version unintentionally.
 * Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but
-   bump version in a commit by itself I can ignore when I pull)
+  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
 
 == Copyright
