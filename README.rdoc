@@ -28,7 +28,9 @@ Include the middleware
 
 For Rails, add the following to config/environment.rb
 
-   config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
+ config.gem 'rack-perftools_profiler', :version => '~> 0.0.1', :lib => 'rack/perftools_profiler'
+ require 'rack/perftools_profiler'
+ config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
 
 For Sinatra, call 'use' inside a configure block, like so:
 
