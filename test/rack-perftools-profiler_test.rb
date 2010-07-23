@@ -89,7 +89,7 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
         app.call(@data_env)
       end
 
-      should 'pass all Lint checks with text printer' do
+      should 'pass all Lint checks with gif printer' do
         app = Rack::Lint.new(Rack::PerftoolsProfiler.with_profiling_off(@slow_app, :default_printer => 'gif'))
         app.call(@root_request_env)
         app.call(@profiled_request_env)

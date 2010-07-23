@@ -10,12 +10,12 @@ begin
     gem.email = 'ben@bbrinck.com'
     gem.homepage = 'http://github.com/bhb/rack-perftools_profiler'
     gem.authors = ['Ben Brinckerhoff']
-    gem.add_dependency 'perftools.rb', '~> 0.4.0'
-    gem.add_dependency 'rack', '~> 1.0.0'
-    gem.add_dependency('open4', '~> 1.0.1')
-    gem.add_development_dependency 'rack', '~> 1.1.0'
-    gem.add_development_dependency 'shoulda', '~> 2.10.2'
-    gem.add_development_dependency 'mocha', '~> 0.9.8'
+    gem.add_dependency 'perftools.rb', '~> 0.4'
+    gem.add_dependency 'rack', '~> 1.0'
+    gem.add_dependency('open4', '~> 1.0')
+    gem.add_development_dependency 'rack', '~> 1.1'
+    gem.add_development_dependency 'shoulda', '~> 2.10'
+    gem.add_development_dependency 'mocha', '~> 0.9'
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
