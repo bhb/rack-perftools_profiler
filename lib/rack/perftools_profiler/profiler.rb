@@ -24,13 +24,15 @@ module Rack::PerftoolsProfiler
     DEFAULT_PRINTER = :text
     DEFAULT_MODE = :cputime
     UNSET_FREQUENCY = -1
+    DEFAULT_GEMFILE_DIR = '.'
 
     def initialize(app, options)
-      @printer   = (options.delete(:default_printer) { DEFAULT_PRINTER }).to_sym
+      @printer     = (options.delete(:default_printer) { DEFAULT_PRINTER }).to_sym
+      @frequency   = (options.delete(:frequency) { UNSET_FREQUENCY }).to_s
+      @mode        = (options.delete(:mode) { DEFAULT_MODE }).to_sym
+      @bundler     = (options.delete(:bundler) { false })
+      @gemfile_dir = (options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR })
       ProfileDataAction.check_printer(@printer)
-      @frequency = (options.delete(:frequency) { UNSET_FREQUENCY }).to_s
-      @mode      = (options.delete(:mode) { DEFAULT_MODE }).to_sym
-      @bundler   = (options.delete(:bundler) { false })
       raise ProfilerArgumentError, "Invalid option(s): #{options.keys.join(' ')}" unless options.empty?
     end
     
@@ -73,7 +75,7 @@ module Rack::PerftoolsProfiler
         args += " --focus=#{focus}" if focus
         cmd = "pprof.rb #{args} #{PROFILING_DATA_FILE}"
         cmd = "bundle exec " + cmd if @bundler
-        stdout, stderr, status = run(cmd)
+        stdout, stderr, status = Dir.chdir(@gemfile_dir) { run(cmd) }
         if(status == 0)
           [printer, stdout]
         else

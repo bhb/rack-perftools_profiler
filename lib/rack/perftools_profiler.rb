@@ -38,6 +38,7 @@
 # OPTIONS
 #
 # :bundler         - run profiler binary from bundle if set to true
+# :gemfile_dir     - directory with Gemfile
 # :default_printer - can be set to 'text', 'gif', or 'pdf'. Default is :text
 # :mode            - can be set to 'cputime' or 'walltime'. Default is :cputime
 # :frequency       - in :cputime mode, the number of times per second the app will be sampled.
