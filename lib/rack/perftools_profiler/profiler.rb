@@ -30,6 +30,7 @@ module Rack::PerftoolsProfiler
       ProfileDataAction.check_printer(@printer)
       @frequency = (options.delete(:frequency) { UNSET_FREQUENCY }).to_s
       @mode      = (options.delete(:mode) { DEFAULT_MODE }).to_sym
+      @bundler   = (options.delete(:bundler) { false })
       raise ProfilerArgumentError, "Invalid option(s): #{options.keys.join(' ')}" unless options.empty?
     end
     
@@ -71,6 +72,7 @@ module Rack::PerftoolsProfiler
         args += " --ignore=#{ignore}" if ignore
         args += " --focus=#{focus}" if focus
         cmd = "pprof.rb #{args} #{PROFILING_DATA_FILE}"
+        cmd = "bundle exec " + cmd if @bundler
         stdout, stderr, status = run(cmd)
         if(status == 0)
           [printer, stdout]
