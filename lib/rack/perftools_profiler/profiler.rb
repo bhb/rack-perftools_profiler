@@ -43,9 +43,10 @@ module Rack::PerftoolsProfiler
     def self.clear_data
       ::File.delete(PROFILING_DATA_FILE) if ::File.exists?(PROFILING_DATA_FILE)
     end
-
+    
     def start
       set_env_vars
+      PerfTools::CpuProfiler.stop
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
       self.profiling = true
     end
