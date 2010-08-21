@@ -28,13 +28,13 @@ Include the middleware
 
 For Rails 2, add the following to config/environment.rb
 
- config.gem 'rack-perftools_profiler', :version => '~> 0.0', :lib => 'rack/perftools_profiler'
+ config.gem 'rack-perftools_profiler', :version => '~> 0.1', :lib => 'rack/perftools_profiler'
  require 'rack/perftools_profiler'
  config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
 
 For Rails 3 (or any app using Bundler), add the following to your Gemfile
 
- gem 'rack-perftools_profiler', '~> 0.0', :require => 'rack/perftools_profiler' 
+ gem 'rack-perftools_profiler', '~> 0.1', :require => 'rack/perftools_profiler' 
 
 and make sure you pass the option
 
