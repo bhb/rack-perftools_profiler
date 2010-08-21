@@ -49,6 +49,8 @@ For Rack::Builder, call 'use' inside the Builder constructor block
 * :default_printer - can be set to 'text', 'gif', or 'pdf'. Default is :text
 * :mode            - can be set to 'cputime' or 'walltime'. Default is :cputime
 * :frequency       - in :cputime mode, the number of times per second the app will be sampled. Default is 100 (times/sec)
+* :bundler         - run the profiler binary using 'bundle' if set to true. Default is false
+* :gemfile_dir     - directory with Gemfile. Default is the current directory.
 
 == Usage 
 

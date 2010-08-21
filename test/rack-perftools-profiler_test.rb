@@ -402,6 +402,30 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
       end
 
     end
+
+    context "when in bundler mode" do
+      
+      should "call pprof.rb using 'bundle' command if bunder is set" do
+        status = stub_everything(:exitstatus => 0)
+        profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
+        Open4.expects(:popen4).with(regexp_matches(/^bundle exec pprof\.rb/)).returns(status)
+        profiled_app.call(@profiled_request_env)
+      end
+
+      should "change directory into the current directory if custom Gemfile dir is not provided" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true, :gemfile_dir => 'bundler')
+        Dir.expects(:chdir).with('bundler').returns(["","",0])
+        profiled_app.call(@profiled_request_env)
+      end
+
+      should "change directory into custom Gemfile dir if provided" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
+        Dir.expects(:chdir).with('.').returns(["","",0])
+        profiled_app.call(@profiled_request_env)
+      end
+    
+    end
+
   end
 
 end
