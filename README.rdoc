@@ -26,11 +26,21 @@ Include the middleware
 
   require 'rack/perftools_profiler'
 
-For Rails, add the following to config/environment.rb
+For Rails 2, add the following to config/environment.rb
 
- config.gem 'rack-perftools_profiler', :version => '~> 0.0.1', :lib => 'rack/perftools_profiler'
+ config.gem 'rack-perftools_profiler', :version => '~> 0.0', :lib => 'rack/perftools_profiler'
  require 'rack/perftools_profiler'
  config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
+
+For Rails 3 (or any app using Bundler), add the following to your Gemfile
+
+ gem 'rack-perftools_profiler', '~> 0.0', :require => 'rack/perftools_profiler' 
+
+and make sure you pass the option
+
+  :bundler => true
+
+when configuring the middleware.
 
 For Sinatra, call 'use' inside a configure block, like so:
 
@@ -61,7 +71,7 @@ add the 'profile' and (optionally) the 'times' GET params (which will rerun the 
 the specified number of times).
 
 Example: 
-  curl http://localhost:8080/foobar?profile=true&times=3
+  curl http://localhost:3000/foobar?profile=true&times=3
 
 Note that this will change the status, body, and headers of the response (you'll get
 back the profiling data, NOT the original response).
@@ -69,11 +79,11 @@ back the profiling data, NOT the original response).
 The other mode is start/stop mode.
 
 Example:
-  curl http://localhost:8080/__start__
-  curl http://localhost:8080/foobar
-  curl http://localhost:8080/foobaz
-  curl http://localhost:8080/__stop__
-  curl http://localhost:8080/__data__
+  curl http://localhost:3000/__start__
+  curl http://localhost:3000/foobar
+  curl http://localhost:3000/foobaz
+  curl http://localhost:3000/__stop__
+  curl http://localhost:3000/__data__
 
 In this mode, all responses are normal. You must visit \_\_stop\_\_ to complete profiling and
 then you can view the profiling data by visiting \_\_data\_\_
