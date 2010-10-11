@@ -405,7 +405,7 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
 
     context "when in bundler mode" do
       
-      should "call pprof.rb using 'bundle' command if bunder is set" do
+      should "call pprof.rb using 'bundle' command if bundler is set" do
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
         Open4.expects(:popen4).with(regexp_matches(/^bundle exec pprof\.rb/)).returns(status)

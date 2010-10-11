@@ -77,10 +77,12 @@ module Rack::PerftoolsProfiler
         cmd = "pprof.rb #{args} #{PROFILING_DATA_FILE}"
         cmd = "bundle exec " + cmd if @bundler
         stdout, stderr, status = Dir.chdir(@gemfile_dir) { run(cmd) }
-        if(status == 0)
-          [printer, stdout]
-        else
+        if status!=0
           raise ProfilingError.new("Running the command '#{cmd}' exited with status #{status}", stderr)
+        elsif stdout.length == 0 && stderr.length > 0
+          raise ProfilingError.new("Running the command '#{cmd}' failed to generate a file", stderr)
+        else
+          [printer, stdout]
         end
       else
         [:none, nil]
@@ -90,7 +92,8 @@ module Rack::PerftoolsProfiler
     private
 
     def run(command)
-      out = err = pid = nil
+      out = err = ""
+      pid = nil
       status = Open4.popen4(command) do |pid, stdin, stdout, stderr|
         stdin.close
         pid = pid
