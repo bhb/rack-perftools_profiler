@@ -32,15 +32,13 @@ For Rails 2, add the following to config/environment.rb
  require 'rack/perftools_profiler'
  config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
 
-For Rails 3 (or any app using Bundler), add the following to your Gemfile
+For Rails 3, add the following to your Gemfile
 
- gem 'rack-perftools_profiler', '~> 0.1', :require => 'rack/perftools_profiler' 
+  gem 'rack-perftools_profiler', '~> 0.1', :require => 'rack/perftools_profiler'
 
-and make sure you pass the option
+and add the following to config/application.rb
 
-  :bundler => true
-
-when configuring the middleware.
+  config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif', :bundler => true
 
 For Sinatra, call 'use' inside a configure block, like so:
 
