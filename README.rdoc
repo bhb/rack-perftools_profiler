@@ -55,7 +55,7 @@ For Rack::Builder, call 'use' inside the Builder constructor block
 == Options
 
 * :default_printer - can be set to 'text', 'gif', or 'pdf'. Default is :text
-* :mode            - can be set to 'cputime' or 'walltime'. Default is :cputime
+* :mode            - can be set to 'cputime', 'objects', 'walltime'. Default is :cputime. See the 'Profiling Modes' section below.
 * :frequency       - in :cputime mode, the number of times per second the app will be sampled. Default is 100 (times/sec)
 * :bundler         - run the profiler binary using 'bundle' if set to true. Default is false
 * :gemfile_dir     - directory with Gemfile. Default is the current directory.
@@ -98,6 +98,47 @@ start/stop mode, they are added to the \_\_data\_\_ URL
 
 (for 'ignore' and 'focus', please see http://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html#pprof
 for more details)
+
+== Profiling Modes
+
+perftools.rb can be put into three different profiling modes.
+
+* CPU time mode            - Reports how many CPU cycles are spent in each section of code. This is the default and can be enabled by setting ':mode => :cputime'
+* Wall time mode           - Reports the amount of time (as in, wall clock time) spent in each section of code. Enable by setting ':mode => :walltime'
+* Object allocation mode   - Reports the percentage of object allocations performed in each section of code. Enable by setting ':mode => :objects'
+
+For example, consider the following Sinatra application:
+
+  require 'sinatra'
+  require 'rack/perftools_profiler'
+
+  configure do
+    use Rack::PerftoolsProfiler, :default_printer => 'gif', :mode => :cputime
+  end
+
+  get "/slow" do
+    sleep(3)
+    "hello"
+  end
+
+In the default mode, there will be no profiling data for the 'slow' route, because it uses few CPU cycles (You'll see the message 'No nodes to print').
+
+If you change the mode to ':walltime', you'll get profiling data, since the call to 'sleep' causes the code to spend several seconds of wall time in the block.
+
+== Changing behavior with environment variables
+
+The mode and frequency settings are enabled by setting environment variables. Some of these environment variables must be set before 'perftools' is required. If you only require 'rack/perftools_profiler', it will do the right thing (require 'perftools' after setting the environment variables).
+
+If you need to require 'perftools' before 'rack/perftools_profiler' (or you have other problems changing the mode or frequency), try using these environment variables yourself.
+
+Setting the frequency:
+  CPUPROFILE_FREQUENCY=500 ruby your_app.rb
+
+Setting the mode to 'wall time'
+  CPUPROFILE_REALTIME=1 ruby your_app.rb
+
+Setting the mode to 'object allocation'
+  CPUPROFILE_OBJECTS=1 ruby your_app.rb
 
 == Acknowledgments
 
