@@ -107,6 +107,7 @@ module Rack::PerftoolsProfiler
 
     def set_env_vars
       ENV['CPUPROFILE_REALTIME'] = '1' if @mode == :walltime
+      ENV['CPUPROFILE_OBJECTS'] = '1' if @mode == :objects
       ENV['CPUPROFILE_FREQUENCY'] = @frequency if @frequency != UNSET_FREQUENCY
     end
 
@@ -114,6 +115,7 @@ module Rack::PerftoolsProfiler
     def unset_env_vars
       ENV.delete('CPUPROFILE_REALTIME')
       ENV.delete('CPUPROFILE_FREQUENCY')
+      ENV.delete('CPUPROFILE_OBJECTS')
     end
     
     def profiling=(value)

@@ -159,6 +159,17 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
         assert_equal '1', realtime
       end
 
+      should "set CPUPROFILE_OBJECTS to 1 if mode is 'objects'" do
+        realtime = ENV['CPUPROFILE_OBJECTS']
+        assert_nil realtime
+        app = lambda do |env|
+          realtime = ENV['CPUPROFILE_OBJECTS']
+          [200, {}, ["hi"]]
+        end
+        Rack::PerftoolsProfiler.new(app, :mode => 'objects').call(@profiled_request_env)
+        assert_equal '1', realtime
+      end
+
       should "not set CPUPROFILE_FREQUENCY by default" do
         frequency = ENV['CPUPROFILE_FREQUENCY']
         assert_nil frequency
