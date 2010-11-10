@@ -1,5 +1,4 @@
 require 'rack'
-require 'perftools'
 require 'pstore'
 require 'open4'
 

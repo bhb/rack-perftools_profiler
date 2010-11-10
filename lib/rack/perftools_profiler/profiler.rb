@@ -33,6 +33,9 @@ module Rack::PerftoolsProfiler
       @bundler     = (options.delete(:bundler) { false })
       @gemfile_dir = (options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR })
       ProfileDataAction.check_printer(@printer)
+      # We need to set the enviroment variables before loading perftools
+      set_env_vars
+      require 'perftools'
       raise ProfilerArgumentError, "Invalid option(s): #{options.keys.join(' ')}" unless options.empty?
     end
     
@@ -48,7 +51,6 @@ module Rack::PerftoolsProfiler
     end
     
     def start
-      set_env_vars
       PerfTools::CpuProfiler.stop
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
       self.profiling = true
@@ -108,6 +110,7 @@ module Rack::PerftoolsProfiler
       ENV['CPUPROFILE_FREQUENCY'] = @frequency if @frequency != UNSET_FREQUENCY
     end
 
+    # Useful for testing
     def unset_env_vars
       ENV.delete('CPUPROFILE_REALTIME')
       ENV.delete('CPUPROFILE_FREQUENCY')
