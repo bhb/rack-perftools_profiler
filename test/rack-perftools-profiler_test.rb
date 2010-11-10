@@ -159,6 +159,17 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
         assert_equal '1', realtime
       end
 
+      should "not set CPUPROFILE_FREQUENCY by default" do
+        frequency = ENV['CPUPROFILE_FREQUENCY']
+        assert_nil frequency
+        app = lambda do |env|
+          frequency = ENV['CPUPROFILE_FREQUENCY']
+          [200, {}, ["hi"]]
+        end
+        Rack::PerftoolsProfiler.new(app).call(@profiled_request_env)
+        assert_nil frequency
+      end
+
       should 'alter CPUPROFILE_FREQUENCY if frequency is set' do
         frequency = ENV['CPUPROFILE_FREQUENCY']
         assert_nil frequency

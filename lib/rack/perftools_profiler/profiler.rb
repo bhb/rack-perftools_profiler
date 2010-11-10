@@ -23,7 +23,7 @@ module Rack::PerftoolsProfiler
     PROFILING_SETTINGS_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.config')
     DEFAULT_PRINTER = :text
     DEFAULT_MODE = :cputime
-    UNSET_FREQUENCY = -1
+    UNSET_FREQUENCY = "-1"
     DEFAULT_GEMFILE_DIR = '.'
 
     def initialize(app, options)
