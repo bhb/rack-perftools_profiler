@@ -30,7 +30,7 @@ For Rails 2, add the following to config/environment.rb
 
  config.gem 'rack-perftools_profiler', :version => '~> 0.1', :lib => 'rack/perftools_profiler'
  require 'rack/perftools_profiler'
- config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif'
+ config.middleware.use ::Rack::PerftoolsProfiler, :default_printer => 'gif'
 
 For Rails 3, add the following to your Gemfile
 
@@ -38,18 +38,18 @@ For Rails 3, add the following to your Gemfile
 
 and add the following to config/application.rb
 
-  config.middleware.use Rack::PerftoolsProfiler, :default_printer => 'gif', :bundler => true
+  config.middleware.use ::Rack::PerftoolsProfiler, :default_printer => 'gif', :bundler => true
 
 For Sinatra, call 'use' inside a configure block, like so:
 
   configure :profiling do
-    use Rack::PerftoolsProfiler, :default_printer => 'gif'
+    use ::Rack::PerftoolsProfiler, :default_printer => 'gif'
   end
 
 For Rack::Builder, call 'use' inside the Builder constructor block
 
   Rack::Builder.new do
-    use Rack::PerftoolsProfiler, :default_printer => 'gif'
+    use ::Rack::PerftoolsProfiler, :default_printer => 'gif'
   end
     
 == Options
@@ -113,7 +113,7 @@ For example, consider the following Sinatra application:
   require 'rack/perftools_profiler'
 
   configure do
-    use Rack::PerftoolsProfiler, :default_printer => 'gif', :mode => :cputime
+    use ::Rack::PerftoolsProfiler, :default_printer => 'gif', :mode => :cputime
   end
 
   get "/slow" do
@@ -144,8 +144,7 @@ Setting the mode to 'object allocation'
 
 A huge thanks to Aman Gupta for the awesome perftools.rb gem.
 
-The basic idea and initial implementation of the middleware was heavily influenced by 
-Rack::Profiler from rack-contrib.
+The basic idea and initial implementation of the middleware was heavily influenced by Rack::Profiler from rack-contrib.
 
 == Note on Patches/Pull Requests
  
