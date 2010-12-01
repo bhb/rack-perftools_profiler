@@ -18,11 +18,11 @@ module Rack::PerftoolsProfiler
       request = Rack::Request.new(env)
       klass = 
         case request.path
-        when '/__start__'
+        when %r{/__start__$}
           StartProfiling
-        when '/__stop__'
+        when %r{/__stop__$}
           StopProfiling
-        when '/__data__'
+        when %r{/__data__$}
           ReturnData
         else
           if ProfileOnce.has_special_param?(request)
