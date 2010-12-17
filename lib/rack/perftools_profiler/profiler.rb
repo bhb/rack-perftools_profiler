@@ -39,8 +39,8 @@ module Rack::PerftoolsProfiler
       raise ProfilerArgumentError, "Invalid option(s): #{options.keys.join(' ')}" unless options.empty?
     end
     
-    def profile
-      start
+    def profile(mode = nil)
+      start(mode)
       yield
     ensure
       stop
@@ -50,8 +50,13 @@ module Rack::PerftoolsProfiler
       ::File.delete(PROFILING_DATA_FILE) if ::File.exists?(PROFILING_DATA_FILE)
     end
     
-    def start
+    def start(mode = nil)
       PerfTools::CpuProfiler.stop
+      if (mode) # if a mode is passed, change to that mode and set env variables accordingly.
+        @mode = mode
+        unset_env_vars # clear the ones already set.
+      end  
+      set_env_vars
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
       self.profiling = true
     end
