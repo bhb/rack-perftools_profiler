@@ -17,7 +17,7 @@ module Rack::PerftoolsProfiler
     def self.for_env(env, profiler, middleware)
       request = Rack::Request.new(env)
       klass = 
-        case request.path
+        case request.path_info
         when '/__start__'
           StartProfiling
         when '/__stop__'
