@@ -11,12 +11,13 @@ module Rack::PerftoolsProfiler
       super
       request = Rack::Request.new(@env)
       @times = (request.params.fetch('times') {1}).to_i
+      @mode = request.params['mode'] && request.params['mode'].to_sym
       check_printer_arg
       @new_env = delete_custom_params(@env)
     end
     
     def act
-      @profiler.profile do
+      @profiler.profile(@mode) do
         @times.times { @middleware.call_app(@new_env) }
       end
     end

@@ -2,8 +2,14 @@ module Rack::PerftoolsProfiler
 
   class StartProfiling < Action
 
+    def initialize(*args)
+      super
+      request = Rack::Request.new(@env)
+      @mode = request.params['mode'] && request.params['mode'].to_sym
+    end
+    
     def act
-      @profiler.start
+      @profiler.start(@mode)
     end
 
     def response
