@@ -22,7 +22,9 @@ module Rack::PerftoolsProfiler
     PROFILING_DATA_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.prof')
     PROFILING_SETTINGS_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.config')
     DEFAULT_PRINTER = :text
+    MODES = [:cputime, :objects, :walltime]
     DEFAULT_MODE = :cputime
+    CHANGEABLE_MODES = [:objects]
     UNSET_FREQUENCY = "-1"
     DEFAULT_GEMFILE_DIR = '.'
 
@@ -40,6 +42,7 @@ module Rack::PerftoolsProfiler
     end
     
     def profile(mode = nil)
+      validate_mode(mode) if mode
       start(mode)
       yield
     ensure
@@ -52,13 +55,17 @@ module Rack::PerftoolsProfiler
     
     def start(mode = nil)
       PerfTools::CpuProfiler.stop
-      if (mode) # if a mode is passed, change to that mode and set env variables accordingly.
+      # if a mode is passed, change to that mode and set env variables accordingly.
+      if (mode && @mode!=mode)
+        old_mode = @mode
         @mode = mode
-        unset_env_vars # clear the ones already set.
       end  
+      unset_env_vars
       set_env_vars
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
       self.profiling = true
+    ensure
+      @mode = old_mode
     end
 
     def stop
@@ -133,6 +140,15 @@ module Rack::PerftoolsProfiler
       pstore = PStore.new(PROFILING_SETTINGS_FILE)
       pstore.transaction(read_only) do
         yield pstore if block_given?
+      end
+    end
+
+    def validate_mode(mode)
+      if !MODES.include?(mode)
+        message = "Invalid mode '#{mode}'. "
+        mode_string = CHANGEABLE_MODES.map{|m| "'#{m}'"}.join(", ")
+        message += "Per-request mode changes are only available for the following modes: #{mode_string}"
+        raise ProfilerArgumentError, message
       end
     end
 
