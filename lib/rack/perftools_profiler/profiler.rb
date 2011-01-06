@@ -34,6 +34,7 @@ module Rack::PerftoolsProfiler
       @mode        = (options.delete(:mode) { DEFAULT_MODE }).to_sym
       @bundler     = (options.delete(:bundler) { false })
       @gemfile_dir = (options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR })
+      @mode_for_request = nil
       ProfileDataAction.check_printer(@printer)
       # We need to set the enviroment variables before loading perftools
       set_env_vars
@@ -56,16 +57,15 @@ module Rack::PerftoolsProfiler
     def start(mode = nil)
       PerfTools::CpuProfiler.stop
       # if a mode is passed, change to that mode and set env variables accordingly.
-      if (mode && @mode!=mode)
-        old_mode = @mode
-        @mode = mode
+      if (mode)
+        @mode_for_request = mode
       end  
       unset_env_vars
       set_env_vars
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
       self.profiling = true
     ensure
-      @mode = old_mode
+      @mode_for_request = nil
     end
 
     def stop
@@ -118,8 +118,13 @@ module Rack::PerftoolsProfiler
     end
 
     def set_env_vars
-      ENV['CPUPROFILE_REALTIME'] = '1' if @mode == :walltime
-      ENV['CPUPROFILE_OBJECTS'] = '1' if @mode == :objects
+      if @mode_for_request
+        mode_to_use = @mode_for_request
+      else
+        mode_to_use = @mode
+      end
+      ENV['CPUPROFILE_REALTIME'] = '1' if mode_to_use == :walltime
+      ENV['CPUPROFILE_OBJECTS'] = '1' if mode_to_use == :objects
       ENV['CPUPROFILE_FREQUENCY'] = @frequency if @frequency != UNSET_FREQUENCY
     end
 
