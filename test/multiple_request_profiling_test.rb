@@ -27,61 +27,106 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     profiled_app.call(@data_env) if get_data
   end
 
-  should 'default to text printer' do
-    _, headers, _ = profile_requests(Rack::PerftoolsProfiler.new(@app), :default)
-    assert_equal "text/plain", headers['Content-Type']
-  end
+  context "(common behavior)" do
 
-  should "set CPUPROFILE_REALTIME to 1 if mode is 'walltime' " do
-    realtime = ENV['CPUPROFILE_REALTIME']
-    assert_nil realtime
-    app = lambda do |env|
+    should 'default to text printer' do
+      _, headers, _ = profile_requests(Rack::PerftoolsProfiler.new(@app), :default)
+      assert_equal "text/plain", headers['Content-Type']
+    end
+
+    should "set CPUPROFILE_REALTIME to 1 if mode is 'walltime' " do
       realtime = ENV['CPUPROFILE_REALTIME']
-      [200, {}, ["hi"]]
+      assert_nil realtime
+      app = lambda do |env|
+        realtime = ENV['CPUPROFILE_REALTIME']
+        [200, {}, ["hi"]]
+      end
+      profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'walltime')
+      profile_requests(profiled_app, :default, :get_data => false)
+      assert_equal '1', realtime
     end
-    profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'walltime')
-    profile_requests(profiled_app, :default, :get_data => false)
-    assert_equal '1', realtime
-  end
 
-  should "set CPUPROFILE_OBJECTS to 1 if mode is 'objects'" do
-    objects = ENV['CPUPROFILE_OBJECTS']
-    assert_nil objects
-    app = lambda do |env|
+    should "set CPUPROFILE_OBJECTS to 1 if mode is 'objects'" do
       objects = ENV['CPUPROFILE_OBJECTS']
-      [200, {}, ["hi"]]
+      assert_nil objects
+      app = lambda do |env|
+        objects = ENV['CPUPROFILE_OBJECTS']
+        [200, {}, ["hi"]]
+      end
+      profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'objects')
+      profile_requests(profiled_app, :default, :get_data => false)
+      assert_equal '1', objects
     end
-    profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'objects')
-    profile_requests(profiled_app, :default, :get_data => false)
-    assert_equal '1', objects
-  end
 
-  should "not set CPUPROFILE_FREQUENCY by default" do
-    frequency = ENV['CPUPROFILE_FREQUENCY']
-    assert_nil frequency
-    app = lambda do |env|
+    should "not set CPUPROFILE_FREQUENCY by default" do
       frequency = ENV['CPUPROFILE_FREQUENCY']
-      [200, {}, ["hi"]]
+      assert_nil frequency
+      app = lambda do |env|
+        frequency = ENV['CPUPROFILE_FREQUENCY']
+        [200, {}, ["hi"]]
+      end
+      profiled_app = Rack::PerftoolsProfiler.new(app)
+      profile_requests(profiled_app, :default, :get_data => false)
+      assert_nil frequency
     end
-    profiled_app = Rack::PerftoolsProfiler.new(app)
-    profile_requests(profiled_app, :default, :get_data => false)
-    assert_nil frequency
-  end
 
-  should 'alter CPUPROFILE_FREQUENCY if frequency is set' do
-    frequency = ENV['CPUPROFILE_FREQUENCY']
-    assert_nil frequency
-    app = lambda do |env|
+    should 'alter CPUPROFILE_FREQUENCY if frequency is set' do
       frequency = ENV['CPUPROFILE_FREQUENCY']
-      [200, {}, ["hi"]]
+      assert_nil frequency
+      app = lambda do |env|
+        frequency = ENV['CPUPROFILE_FREQUENCY']
+        [200, {}, ["hi"]]
+      end
+      profiled_app = Rack::PerftoolsProfiler.new(app, :frequency => 250)
+      profiled_app.call(@start_env)
+      profiled_app.call(@root_request_env)
+      profiled_app.call(@stop_env)
+      assert_equal '250', frequency
     end
-    profiled_app = Rack::PerftoolsProfiler.new(app, :frequency => 250)
-    profiled_app.call(@start_env)
-    profiled_app.call(@root_request_env)
-    assert_equal '250', frequency
+
+    should "allow 'printer' param to override :default_printer option'" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
+      profiled_app.call(@start_env)
+      profiled_app.call(@root_request_env)
+      profiled_app.call(@stop_env)
+      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=gif')
+      _, headers, _ = profiled_app.call(custom_data_env)
+      assert_equal 'image/gif', headers['Content-Type']
+    end
+
+    should 'give 400 if printer is invalid' do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
+      profile_requests(profiled_app, :default, :get_data => false)
+      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=badprinter')
+      status, _, _ = Rack::PerftoolsProfiler.new(@app).call(custom_data_env)
+      assert_equal 400, status
+    end
+
+    should "accept 'focus' param" do
+      profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
+      profiled_app.call(@start_env)
+      profiled_app.call(Rack::MockRequest.env_for('/method1'))
+      profiled_app.call(Rack::MockRequest.env_for('/method2'))
+      profiled_app.call(@stop_env)
+      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'focus=method1')
+      status, headers, body = profiled_app.call(custom_data_env)
+      assert_no_match(/method2/, RackResponseBody.new(body).to_s)
+    end
+
+    should "accept 'ignore' param" do
+      profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
+      profiled_app.call(@start_env)
+      profiled_app.call(Rack::MockRequest.env_for('/method1'))
+      profiled_app.call(Rack::MockRequest.env_for('/method2'))
+      profiled_app.call(@stop_env)
+      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'ignore=method1')
+      status, headers, body = profiled_app.call(custom_data_env)
+      assert_no_match(/method1/, RackResponseBody.new(body).to_s)
+    end
+    
   end
 
-  context 'when profiling is on' do
+  context 'when profiling is enabled' do
 
     should 'not provide profiling data when __data__ is called' do
       Rack::PerftoolsProfiler.clear_data
@@ -155,38 +200,6 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     status, headers, body = profiled_app.call(@data_env)
     assert_match(/method1/, RackResponseBody.new(body).to_s)
     assert_match(/method2/, RackResponseBody.new(body).to_s)
-  end
-
-  should "allow 'printer' param to override :default_printer option'" do
-    profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
-    profiled_app.call(@start_env)
-    profiled_app.call(@root_request_env)
-    profiled_app.call(@stop_env)
-    custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=gif')
-    _, headers, _ = profiled_app.call(custom_data_env)
-    assert_equal 'image/gif', headers['Content-Type']
-  end
-
-  should "accept 'focus' param" do
-    profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-    profiled_app.call(@start_env)
-    profiled_app.call(Rack::MockRequest.env_for('/method1'))
-    profiled_app.call(Rack::MockRequest.env_for('/method2'))
-    profiled_app.call(@stop_env)
-    custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'focus=method1')
-    status, headers, body = profiled_app.call(custom_data_env)
-    assert_no_match(/method2/, RackResponseBody.new(body).to_s)
-  end
-
-  should "accept 'ignore' param" do
-    profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-    profiled_app.call(@start_env)
-    profiled_app.call(Rack::MockRequest.env_for('/method1'))
-    profiled_app.call(Rack::MockRequest.env_for('/method2'))
-    profiled_app.call(@stop_env)
-    custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'ignore=method1')
-    status, headers, body = profiled_app.call(custom_data_env)
-    assert_no_match(/method1/, RackResponseBody.new(body).to_s)
   end
 
 end
