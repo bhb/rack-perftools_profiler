@@ -22,7 +22,9 @@ module Rack::PerftoolsProfiler
     PROFILING_DATA_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.prof')
     PROFILING_SETTINGS_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.config')
     DEFAULT_PRINTER = :text
+    MODES = [:cputime, :objects, :walltime]
     DEFAULT_MODE = :cputime
+    CHANGEABLE_MODES = [:objects]
     UNSET_FREQUENCY = "-1"
     DEFAULT_GEMFILE_DIR = '.'
 
@@ -32,6 +34,7 @@ module Rack::PerftoolsProfiler
       @mode        = (options.delete(:mode) { DEFAULT_MODE }).to_sym
       @bundler     = (options.delete(:bundler) { false })
       @gemfile_dir = (options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR })
+      @mode_for_request = nil
       ProfileDataAction.check_printer(@printer)
       # We need to set the enviroment variables before loading perftools
       set_env_vars
@@ -39,8 +42,9 @@ module Rack::PerftoolsProfiler
       raise ProfilerArgumentError, "Invalid option(s): #{options.keys.join(' ')}" unless options.empty?
     end
     
-    def profile
-      start
+    def profile(mode = nil)
+      validate_mode(mode) if mode
+      start(mode)
       yield
     ensure
       stop
@@ -50,10 +54,17 @@ module Rack::PerftoolsProfiler
       ::File.delete(PROFILING_DATA_FILE) if ::File.exists?(PROFILING_DATA_FILE)
     end
     
-    def start
+    def start(mode = nil)
       PerfTools::CpuProfiler.stop
+      if (mode)
+        @mode_for_request = mode
+      end  
+      unset_env_vars
+      set_env_vars
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
       self.profiling = true
+    ensure
+      @mode_for_request = nil
     end
 
     def stop
@@ -106,12 +117,16 @@ module Rack::PerftoolsProfiler
     end
 
     def set_env_vars
-      ENV['CPUPROFILE_REALTIME'] = '1' if @mode == :walltime
-      ENV['CPUPROFILE_OBJECTS'] = '1' if @mode == :objects
+      if @mode_for_request
+        mode_to_use = @mode_for_request
+      else
+        mode_to_use = @mode
+      end
+      ENV['CPUPROFILE_REALTIME'] = '1' if mode_to_use == :walltime
+      ENV['CPUPROFILE_OBJECTS'] = '1' if mode_to_use == :objects
       ENV['CPUPROFILE_FREQUENCY'] = @frequency if @frequency != UNSET_FREQUENCY
     end
 
-    # Useful for testing
     def unset_env_vars
       ENV.delete('CPUPROFILE_REALTIME')
       ENV.delete('CPUPROFILE_FREQUENCY')
@@ -128,6 +143,16 @@ module Rack::PerftoolsProfiler
       pstore = PStore.new(PROFILING_SETTINGS_FILE)
       pstore.transaction(read_only) do
         yield pstore if block_given?
+      end
+    end
+
+    def validate_mode(mode)
+      if !CHANGEABLE_MODES.include?(mode)
+        message = "Cannot change mode to '#{mode}'.\n"
+        mode_string = CHANGEABLE_MODES.map{|m| "'#{m}'"}.join(", ")
+        message += "Per-request mode changes are only available for the following modes: #{mode_string}.\n"
+        message += "See the README for more details."
+        raise ProfilerArgumentError, message
       end
     end
 
