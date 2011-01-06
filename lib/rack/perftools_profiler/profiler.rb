@@ -144,10 +144,11 @@ module Rack::PerftoolsProfiler
     end
 
     def validate_mode(mode)
-      if !MODES.include?(mode)
-        message = "Invalid mode '#{mode}'. "
+      if !CHANGEABLE_MODES.include?(mode)
+        message = "Cannot change mode to '#{mode}'.\n"
         mode_string = CHANGEABLE_MODES.map{|m| "'#{m}'"}.join(", ")
-        message += "Per-request mode changes are only available for the following modes: #{mode_string}"
+        message += "Per-request mode changes are only available for the following modes: #{mode_string}.\n"
+        message += "See the README for more details."
         raise ProfilerArgumentError, message
       end
     end

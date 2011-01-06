@@ -483,16 +483,28 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
         request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
         status, _, body = profiled_app.call(request)
         assert_equal 400, status
-        assert_match(/Invalid mode '#{mode}'. Per-request mode changes are only available for the following modes: 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)
+      end
+
+      should "return error message if mode is 'walltime'" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "walltime"
+        request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
+        status, _, body = profiled_app.call(request)
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
                      RackResponseBody.new(body).to_s)        
       end
 
-      should_eventually "return error message if mode is 'walltime'" do
-        
-      end
-
-      should_eventually "return error message if mode is 'cputime'" do
-        
+      should "return error message if mode is 'cputime'" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "cputime"
+        request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
+        status, _, body = profiled_app.call(request)
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)        
       end
 
     end
