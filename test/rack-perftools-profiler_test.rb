@@ -100,7 +100,7 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
         Dir.expects(:chdir).with('.').returns(["","",0])
         profiled_app.call(@profiled_request_env)
       end
-    
+      
     end
 
     context "when changing mode for single request" do
