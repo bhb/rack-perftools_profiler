@@ -450,6 +450,18 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
 
     context "when changing mode for single request" do
 
+      should "default to configured mode if mode is empty string" do
+        realtime = ENV['CPUPROFILE_REALTIME']
+        assert_nil realtime
+        app = lambda do |env|
+          realtime = ENV['CPUPROFILE_REALTIME']
+          [200, {}, ["hi"]]
+        end
+        request = Rack::MockRequest.env_for("/", :params => 'profile=true&mode=')
+        Rack::PerftoolsProfiler.new(app, :mode => :walltime).call(request)
+        assert_equal '1', realtime
+      end
+
       should "set CPUPROFILE_OBJECTS to 1 if mode is 'objects'" do
         objects = ENV['CPUPROFILE_OBJECTS']
         assert_nil objects

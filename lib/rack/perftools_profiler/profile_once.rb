@@ -2,6 +2,7 @@ module Rack::PerftoolsProfiler
 
   class ProfileOnce < ProfileDataAction
     include Rack::Utils
+    include Rack::PerftoolsProfiler::Utils
 
     def self.has_special_param?(request)
       request.params['profile'] != nil
@@ -11,7 +12,13 @@ module Rack::PerftoolsProfiler
       super
       request = Rack::Request.new(@env)
       @times = (request.params.fetch('times') {1}).to_i
-      @mode = request.params['mode'] && request.params['mode'].to_sym
+      @mode = let(request.params['mode']) do |m|
+        if m.nil? || m.empty?
+          nil
+        else
+          m.to_sym
+        end
+      end
       check_printer_arg
       @new_env = delete_custom_params(@env)
     end
