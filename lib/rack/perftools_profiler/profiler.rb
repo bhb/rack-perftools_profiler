@@ -56,7 +56,6 @@ module Rack::PerftoolsProfiler
     
     def start(mode = nil)
       PerfTools::CpuProfiler.stop
-      # if a mode is passed, change to that mode and set env variables accordingly.
       if (mode)
         @mode_for_request = mode
       end  
@@ -128,7 +127,6 @@ module Rack::PerftoolsProfiler
       ENV['CPUPROFILE_FREQUENCY'] = @frequency if @frequency != UNSET_FREQUENCY
     end
 
-    # Useful for testing
     def unset_env_vars
       ENV.delete('CPUPROFILE_REALTIME')
       ENV.delete('CPUPROFILE_FREQUENCY')
