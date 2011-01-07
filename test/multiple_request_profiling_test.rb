@@ -146,6 +146,100 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       end
       
     end
+
+    context "when overriding profiling mode" do
+
+      should "default to configured mode if mode is empty string" do
+        realtime = ENV['CPUPROFILE_REALTIME']
+        assert_nil realtime
+        app = lambda do |env|
+          realtime = ENV['CPUPROFILE_REALTIME']
+          [200, {}, ["hi"]]
+        end
+        profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :walltime)
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=')
+        profiled_app.call(modified_start_env)
+        profiled_app.call(@root_request_env)
+        profiled_app.call(@stop_env)
+        assert_equal '1', realtime
+      end
+
+      should "set CPUPROFILE_OBJECTS to 1 if mode is 'objects'" do
+        objects = ENV['CPUPROFILE_OBJECTS']
+        assert_nil objects
+        app = lambda do |env|
+          objects = ENV['CPUPROFILE_OBJECTS']
+          [200, {}, ["hi"]]
+        end
+        profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=objects')
+        profiled_app.call(modified_start_env)
+        profiled_app.call(@root_request_env)
+        profiled_app.call(@stop_env)
+        assert_equal '1', objects
+      end
+
+      should "return to default mode if no mode is specified" do
+        objects = ENV['CPUPROFILE_OBJECTS']
+        assert_nil objects
+        app = lambda do |env|
+          objects = ENV['CPUPROFILE_OBJECTS']
+          [200, {}, ["hi"]]
+        end
+
+        profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=objects')
+        profiled_app.call(modified_start_env)
+        profiled_app.call(@root_request_env)
+        profiled_app.call(@stop_env)
+
+        profiled_app.call(@start_env)
+        profiled_app.call(@root_request_env)
+        profiled_app.call(@stop_env)
+        
+        assert_nil objects
+      end
+
+      should "return error message if mode is unrecognized" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "foobar"
+
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => "mode=#{mode}")
+
+        status, _, body = profiled_app.call(modified_start_env)
+
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)
+      end
+
+      should "return error message if mode is 'walltime'" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "walltime"
+
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => "mode=#{mode}")
+
+        status, _, body = profiled_app.call(modified_start_env)
+
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)
+      end
+
+      should "return error message if mode is 'cputime'" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "cputime"
+
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => "mode=#{mode}")
+
+        status, _, body = profiled_app.call(modified_start_env)
+
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)
+      end
+
+    end
     
   end
 

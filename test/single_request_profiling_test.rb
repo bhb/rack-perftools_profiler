@@ -115,6 +115,79 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
       
     end
 
+    context "when overriding profiling mode" do
+
+      should "default to configured mode if mode is empty string" do
+        realtime = ENV['CPUPROFILE_REALTIME']
+        assert_nil realtime
+        app = lambda do |env|
+          realtime = ENV['CPUPROFILE_REALTIME']
+          [200, {}, ["hi"]]
+        end
+        request = Rack::MockRequest.env_for("/", :params => 'profile=true&mode=')
+        Rack::PerftoolsProfiler.new(app, :mode => :walltime).call(request)
+        assert_equal '1', realtime
+      end
+
+      should "set CPUPROFILE_OBJECTS to 1 if mode is 'objects'" do
+        objects = ENV['CPUPROFILE_OBJECTS']
+        assert_nil objects
+        app = lambda do |env|
+          objects = ENV['CPUPROFILE_OBJECTS']
+          [200, {}, ["hi"]]
+        end
+        request = Rack::MockRequest.env_for("/", :params => 'profile=true&mode=objects')
+        Rack::PerftoolsProfiler.new(app, :mode => :cputime).call(request)
+        assert_equal '1', objects
+      end
+
+      should "return to default mode if no mode is specified" do
+        objects = ENV['CPUPROFILE_OBJECTS']
+        assert_nil objects
+        app = lambda do |env|
+          objects = ENV['CPUPROFILE_OBJECTS']
+          [200, {}, ["hi"]]
+        end
+        
+        request = Rack::MockRequest.env_for("/", :params => 'profile=true&mode=objects')
+        rack_profiler = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
+        rack_profiler.call(request)
+        rack_profiler.call(@profiled_request_env)
+        assert_nil objects
+      end
+
+      should "return error message if mode is unrecognized" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "foobar"
+        request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
+        status, _, body = profiled_app.call(request)
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)
+      end
+
+      should "return error message if mode is 'walltime'" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "walltime"
+        request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
+        status, _, body = profiled_app.call(request)
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)        
+      end
+
+      should "return error message if mode is 'cputime'" do
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        mode = "cputime"
+        request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
+        status, _, body = profiled_app.call(request)
+        assert_equal 400, status
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+                     RackResponseBody.new(body).to_s)        
+      end
+
+    end
+
   end
 
   context 'when using the text printer' do

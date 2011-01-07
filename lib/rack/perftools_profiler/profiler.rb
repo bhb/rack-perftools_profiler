@@ -43,7 +43,6 @@ module Rack::PerftoolsProfiler
     end
     
     def profile(mode = nil)
-      validate_mode(mode) if mode
       start(mode)
       yield
     ensure
@@ -55,6 +54,7 @@ module Rack::PerftoolsProfiler
     end
     
     def start(mode = nil)
+      validate_mode(mode) if mode
       PerfTools::CpuProfiler.stop
       if (mode)
         @mode_for_request = mode
