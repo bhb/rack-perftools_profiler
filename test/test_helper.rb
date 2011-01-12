@@ -11,8 +11,10 @@ class Test::Unit::TestCase
 end
 
 ITERATIONS = case RUBY_VERSION
-             when /1\.9\.1/ 
-               350_000   # Ruby 1.9.1 is that we need to add extra iterations to get profiling data
+               # Ruby 1.9.x is so fast that we need to add extra iterations 
+               # to get profiling data
+             when /1\.9\../
+               350_000   
              else 
                35_000
              end
