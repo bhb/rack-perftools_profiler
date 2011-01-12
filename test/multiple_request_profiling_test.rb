@@ -5,7 +5,6 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
 
   def setup
     @app = lambda { |env| ITERATIONS.times {1+2+3+4+5}; [200, {'Content-Type' => 'text/plain'}, ['Oh hai der']] }
-    @slow_app = lambda { |env| ITERATIONS.times {1+2+3+4+5}; [200, {'Content-Type' => 'text/plain'}, ['slow app']] }
     @start_env = Rack::MockRequest.env_for('/__start__')
     @stop_env = Rack::MockRequest.env_for('/__stop__')
     @data_env = Rack::MockRequest.env_for('/__data__')
