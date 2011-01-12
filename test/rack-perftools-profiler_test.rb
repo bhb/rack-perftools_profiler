@@ -53,6 +53,19 @@ class RackPerftoolsProfilerTest < Test::Unit::TestCase
       end
       assert_match(/Invalid printer type\: badprinter/, error.message)
     end
+
+    should 'raise error if mode is invalid' do
+      error = assert_raises ProfilerArgumentError do 
+        Rack::PerftoolsProfiler.with_profiling_off(@app, :mode => 'badmode', :default_printer => 'gif')
+      end
+      assert_match(/Invalid mode\: badmode/, error.message)
+    end
+
+    should 'not raise error if mode is unchangeable' do
+      assert_nothing_raised do 
+        Rack::PerftoolsProfiler.with_profiling_off(@app, :mode => 'walltime', :default_printer => 'gif')
+      end
+    end
     
     should 'not modify options hash' do
       options = {:mode => 'walltime', :default_printer => 'gif'}

@@ -36,6 +36,7 @@ module Rack::PerftoolsProfiler
       @gemfile_dir = (options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR })
       @mode_for_request = nil
       ProfileDataAction.check_printer(@printer)
+      ensure_mode_is_valid(@mode)
       # We need to set the enviroment variables before loading perftools
       set_env_vars
       require 'perftools'
@@ -54,7 +55,7 @@ module Rack::PerftoolsProfiler
     end
     
     def start(mode = nil)
-      validate_mode(mode) if mode
+      ensure_mode_is_changeable(mode) if mode
       PerfTools::CpuProfiler.stop
       if (mode)
         @mode_for_request = mode
@@ -146,12 +147,20 @@ module Rack::PerftoolsProfiler
       end
     end
 
-    def validate_mode(mode)
+    def ensure_mode_is_changeable(mode)
       if !CHANGEABLE_MODES.include?(mode)
         message = "Cannot change mode to '#{mode}'.\n"
         mode_string = CHANGEABLE_MODES.map{|m| "'#{m}'"}.join(", ")
         message += "Per-request mode changes are only available for the following modes: #{mode_string}.\n"
         message += "See the README for more details."
+        raise ProfilerArgumentError, message
+      end
+    end
+
+    def ensure_mode_is_valid(mode)
+      if !MODES.include?(mode)
+        message = "Invalid mode: #{mode}.\n"
+        message += "Valid modes are: #{MODES.join(', ')}"
         raise ProfilerArgumentError, message
       end
     end
