@@ -124,6 +124,20 @@ In the default mode, there will be no profiling data for the 'slow' route, becau
 
 If you change the mode to ':walltime', you'll get profiling data, since the call to 'sleep' causes the code to spend several seconds of wall time in the block.
 
+== Overriding the Profiling mode
+
+You can also switch the profiling mode on a per-request basis, but ONLY if you are switching to 'object' mode. Due to the implementation of perftools.rb, it is NOT possible to switch to 'walltime' or 'cputime' modes.
+
+To switch to 'object' mode, provide the 'mode' option. When profiling with a single request, add the option to the URL profiled:
+
+  curl http://localhost:3000/foobar?profile=true&mode=objects
+
+When profiling using multiple requests, add the option when visiting \_\_start\_\_ :
+
+  curl http://localhost:3000/__start__?mode=objects
+
+If the 'mode' option is omitted, the middleware will default to the mode specified at configuration.
+
 == Changing behavior with environment variables
 
 The mode and frequency settings are enabled by setting environment variables. Some of these environment variables must be set before 'perftools' is required. If you only require 'rack/perftools_profiler', it will do the right thing (require 'perftools' after setting the environment variables).
