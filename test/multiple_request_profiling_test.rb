@@ -11,6 +11,24 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     @root_request_env = Rack::MockRequest.env_for("/")    
   end
 
+  def profile(profiled_app, options = {})
+    start = options.fetch(:start) { @start_env }
+    stop = options.fetch(:stop) { @stop_env }
+    data = options.fetch(:data) { @data_env }
+    
+    profiled_app.call(start)
+    if block_given?
+      yield profiled_app
+    else
+      profiled_app.call(@root_request_env)
+    end
+    last_response = profiled_app.call(stop)
+    if data!=nil && data!=:none
+      last_response = profiled_app.call(data)
+    end
+    last_response
+  end
+
   def profile_requests(profiled_app, requests, options = {})
     get_data = options.fetch(:get_data) { true }
     if requests == :default
@@ -29,7 +47,8 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
   context "(common behavior)" do
 
     should 'default to text printer' do
-      _, headers, _ = profile_requests(Rack::PerftoolsProfiler.new(@app), :default)
+      # TODO - It's weird that this passes if you pass in :data => :none to #profile
+      _, headers, _ = profile(Rack::PerftoolsProfiler.new(@app))
       assert_equal "text/plain", headers['Content-Type']
     end
 
@@ -41,7 +60,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         [200, {}, ["hi"]]
       end
       profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'walltime')
-      profile_requests(profiled_app, :default, :get_data => false)
+      profile(profiled_app, :data => :none)
       assert_equal '1', realtime
     end
 
@@ -53,19 +72,20 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         [200, {}, ["hi"]]
       end
       profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'objects')
-      profile_requests(profiled_app, :default, :get_data => false)
+      profile(profiled_app, :data => :none)
       assert_equal '1', objects
     end
 
     should "not set CPUPROFILE_FREQUENCY by default" do
       frequency = ENV['CPUPROFILE_FREQUENCY']
       assert_nil frequency
+      frequency = '1'
       app = lambda do |env|
         frequency = ENV['CPUPROFILE_FREQUENCY']
         [200, {}, ["hi"]]
       end
       profiled_app = Rack::PerftoolsProfiler.new(app)
-      profile_requests(profiled_app, :default, :get_data => false)
+      profile(profiled_app, :data => :none)
       assert_nil frequency
     end
 
@@ -77,17 +97,13 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         [200, {}, ["hi"]]
       end
       profiled_app = Rack::PerftoolsProfiler.new(app, :frequency => 250)
-      profiled_app.call(@start_env)
-      profiled_app.call(@root_request_env)
-      profiled_app.call(@stop_env)
+      profile(profiled_app, :data => :none)
       assert_equal '250', frequency
     end
 
     should "allow 'printer' param to override :default_printer option'" do
       profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
-      profiled_app.call(@start_env)
-      profiled_app.call(@root_request_env)
-      profiled_app.call(@stop_env)
+      profile(profiled_app, :data => :none)
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=gif')
       _, headers, _ = profiled_app.call(custom_data_env)
       assert_equal 'image/gif', headers['Content-Type']
@@ -95,31 +111,34 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
 
     should 'give 400 if printer is invalid' do
       profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
-      profile_requests(profiled_app, :default, :get_data => false)
+      profile(profiled_app, :data => :none)
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=badprinter')
-      status, _, _ = Rack::PerftoolsProfiler.new(@app).call(custom_data_env)
+      status, _, body = Rack::PerftoolsProfiler.new(@app).call(custom_data_env)
       assert_equal 400, status
+      assert_match /Invalid printer type/, body.join
     end
 
     should "accept 'focus' param" do
       profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-      profiled_app.call(@start_env)
-      profiled_app.call(Rack::MockRequest.env_for('/method1'))
-      profiled_app.call(Rack::MockRequest.env_for('/method2'))
-      profiled_app.call(@stop_env)
+      profile(profiled_app, :data => :none) do |app|
+        app.call(Rack::MockRequest.env_for('/method1'))
+        app.call(Rack::MockRequest.env_for('/method2'))
+      end
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'focus=method1')
       status, headers, body = profiled_app.call(custom_data_env)
+      assert_match(/method1/,    RackResponseBody.new(body).to_s)
       assert_no_match(/method2/, RackResponseBody.new(body).to_s)
     end
 
     should "accept 'ignore' param" do
       profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-      profiled_app.call(@start_env)
-      profiled_app.call(Rack::MockRequest.env_for('/method1'))
-      profiled_app.call(Rack::MockRequest.env_for('/method2'))
-      profiled_app.call(@stop_env)
+      profile(profiled_app, :data => :none) do |app|
+        app.call(Rack::MockRequest.env_for('/method1'))
+        app.call(Rack::MockRequest.env_for('/method2'))
+      end
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'ignore=method1')
       status, headers, body = profiled_app.call(custom_data_env)
+      assert_match(/method2/,    RackResponseBody.new(body).to_s)
       assert_no_match(/method1/, RackResponseBody.new(body).to_s)
     end
 
@@ -129,19 +148,19 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
         Open4.expects(:popen4).with(regexp_matches(/^bundle exec pprof\.rb/)).returns(status)
-        profile_requests(profiled_app, :default)
+        profile(profiled_app)
       end
 
       should "change directory into the current directory if custom Gemfile dir is not provided" do
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true, :gemfile_dir => 'bundler')
         Dir.expects(:chdir).with('bundler').returns(["","",0])
-        profile_requests(profiled_app, :default)
+        profile(profiled_app)
       end
 
       should "change directory into custom Gemfile dir if provided" do
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
         Dir.expects(:chdir).with('.').returns(["","",0])
-        profile_requests(profiled_app, :default)
+        profile(profiled_app)
       end
       
     end

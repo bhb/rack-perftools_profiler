@@ -8,6 +8,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rack/perftools_profiler'
 
 class Test::Unit::TestCase
+
 end
 
 ITERATIONS = case RUBY_VERSION

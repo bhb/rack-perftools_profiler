@@ -25,6 +25,7 @@ module Rack::PerftoolsProfiler
   end
 
   def self.with_profiling_off(app, options = {})
+    clear_data
     instance = ProfilerMiddleware.new(app, options)
     instance.force_stop
     instance
