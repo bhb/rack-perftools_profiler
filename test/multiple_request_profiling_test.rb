@@ -16,15 +16,15 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     stop = options.fetch(:stop) { @stop_env }
     data = options.fetch(:data) { @data_env }
     
-    profiled_app.call(start)
+    profiled_app.call(start) if start != :none
     if block_given?
       yield profiled_app
     else
       profiled_app.call(@root_request_env)
     end
-    last_response = profiled_app.call(stop)
+    last_response = profiled_app.call(stop) if stop != :none
     if data!=nil && data!=:none
-      last_response = profiled_app.call(data)
+      last_response = profiled_app.call(data) if data
     end
     last_response
   end
@@ -176,9 +176,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         end
         profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :walltime)
         modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=')
-        profiled_app.call(modified_start_env)
-        profiled_app.call(@root_request_env)
-        profiled_app.call(@stop_env)
+        profile(profiled_app, :start => modified_start_env, :data => :none)
         assert_equal '1', realtime
       end
 
@@ -191,9 +189,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         end
         profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
         modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=objects')
-        profiled_app.call(modified_start_env)
-        profiled_app.call(@root_request_env)
-        profiled_app.call(@stop_env)
+        profile(profiled_app, :start => modified_start_env, :data => :none)
         assert_equal '1', objects
       end
 
@@ -207,13 +203,11 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
 
         profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
         modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=objects')
-        profiled_app.call(modified_start_env)
-        profiled_app.call(@root_request_env)
-        profiled_app.call(@stop_env)
+        profile(profiled_app, :start => modified_start_env, :data => :none)
+        
+        assert_equal '1', objects
 
-        profiled_app.call(@start_env)
-        profiled_app.call(@root_request_env)
-        profiled_app.call(@stop_env)
+        profile(profiled_app, :data => :none)
         
         assert_nil objects
       end
@@ -266,9 +260,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     should 'not provide profiling data when __data__ is called' do
       Rack::PerftoolsProfiler.clear_data
       profiled_app = Rack::PerftoolsProfiler.with_profiling_off(@app, :default_printer => 'text')
-      profiled_app.call(@start_env)
-      profiled_app.call(@root_request_env)
-      status, _, body = profiled_app.call(@data_env)
+      status, _ , body = profile(profiled_app, :stop => :none)
       assert_equal 400, status
       assert_match(/No profiling data available./, RackResponseBody.new(body).to_s)
     end
@@ -328,11 +320,10 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
   
   should 'keeps data from multiple calls' do
     profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-    profiled_app.call(@start_env)
-    profiled_app.call(Rack::MockRequest.env_for('/method1'))
-    profiled_app.call(Rack::MockRequest.env_for('/method2'))
-    profiled_app.call(@stop_env)
-    status, headers, body = profiled_app.call(@data_env)
+    status, headers, body = profile(profiled_app) do |app|
+      app.call(Rack::MockRequest.env_for('/method1'))
+      app.call(Rack::MockRequest.env_for('/method2'))
+    end
     assert_match(/method1/, RackResponseBody.new(body).to_s)
     assert_match(/method2/, RackResponseBody.new(body).to_s)
   end
