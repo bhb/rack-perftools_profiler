@@ -308,10 +308,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
 
     should 'return profiling data when __data__ is called' do
       profiled_app = Rack::PerftoolsProfiler.with_profiling_off(@app, :default_printer => 'gif')
-      profiled_app.call(@start_env)
-      profiled_app.call(@root_request_env)
-      profiled_app.call(@stop_env)
-      status, headers, body = profiled_app.call(@data_env)
+      status, headers, body = profile(profiled_app)
       assert_equal 200, status
       assert_equal "image/gif", headers['Content-Type']
     end
