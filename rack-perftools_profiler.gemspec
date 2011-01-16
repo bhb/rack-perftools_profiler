@@ -32,8 +32,8 @@ Gem::Specification.new do |s|
     "lib/rack/perftools_profiler/return_data.rb",
     "lib/rack/perftools_profiler/start_profiling.rb",
     "lib/rack/perftools_profiler/stop_profiling.rb",
-    "test/rack-perftools-profiler_test.rb",
-    "test/test_helper.rb"
+    "lib/rack/perftools_profiler/utils.rb",
+    "test/rack-perftools-profiler_test.rb"
   ]
   s.homepage = %q{http://github.com/bhb/rack-perftools_profiler}
   s.require_paths = ["lib"]
