@@ -103,41 +103,40 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
 
     should "allow 'printer' param to override :default_printer option'" do
       profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
-      profile(profiled_app, :data => :none)
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=gif')
-      _, headers, _ = profiled_app.call(custom_data_env)
+      _, headers, _ = profile(profiled_app, :data => custom_data_env)
       assert_equal 'image/gif', headers['Content-Type']
     end
 
     should 'give 400 if printer is invalid' do
       profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
-      profile(profiled_app, :data => :none)
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=badprinter')
-      status, _, body = Rack::PerftoolsProfiler.new(@app).call(custom_data_env)
+      status, _, body = profile(profiled_app, :data => custom_data_env)
       assert_equal 400, status
       assert_match /Invalid printer type/, body.join
     end
 
     should "accept 'focus' param" do
       profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-      profile(profiled_app, :data => :none) do |app|
+      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'focus=method1')
+
+      status, headers, body = profile(profiled_app, :data => custom_data_env) do |app|
         app.call(Rack::MockRequest.env_for('/method1'))
         app.call(Rack::MockRequest.env_for('/method2'))
       end
-      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'focus=method1')
-      status, headers, body = profiled_app.call(custom_data_env)
       assert_match(/method1/,    RackResponseBody.new(body).to_s)
       assert_no_match(/method2/, RackResponseBody.new(body).to_s)
     end
 
     should "accept 'ignore' param" do
       profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
-      profile(profiled_app, :data => :none) do |app|
+      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'ignore=method1')
+
+      status, headers, body = profile(profiled_app, :data => custom_data_env) do |app|
         app.call(Rack::MockRequest.env_for('/method1'))
         app.call(Rack::MockRequest.env_for('/method2'))
       end
-      custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'ignore=method1')
-      status, headers, body = profiled_app.call(custom_data_env)
+
       assert_match(/method2/,    RackResponseBody.new(body).to_s)
       assert_no_match(/method1/, RackResponseBody.new(body).to_s)
     end
