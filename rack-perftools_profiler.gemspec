@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rack-perftools_profiler}
-  s.version = "0.2.1"
+  s.version = "0.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Brinckerhoff"]
-  s.date = %q{2011-01-04}
+  s.date = %q{2011-01-16}
   s.description = %q{Middleware for profiling Rack-compatible apps using perftools.rb}
   s.email = %q{ben@bbrinck.com}
   s.extra_rdoc_files = [
@@ -33,14 +33,20 @@ Gem::Specification.new do |s|
     "lib/rack/perftools_profiler/start_profiling.rb",
     "lib/rack/perftools_profiler/stop_profiling.rb",
     "lib/rack/perftools_profiler/utils.rb",
-    "test/rack-perftools-profiler_test.rb"
+    "rack-perftools_profiler.gemspec",
+    "test/multiple_request_profiling_test.rb",
+    "test/rack-perftools-profiler_test.rb",
+    "test/single_request_profiling_test.rb",
+    "test/test_helper.rb"
   ]
   s.homepage = %q{http://github.com/bhb/rack-perftools_profiler}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Middleware for profiling Rack-compatible apps using perftools.rb}
   s.test_files = [
+    "test/multiple_request_profiling_test.rb",
     "test/rack-perftools-profiler_test.rb",
+    "test/single_request_profiling_test.rb",
     "test/test_helper.rb"
   ]
 
@@ -49,7 +55,7 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<perftools.rb>, [">= 0.5.4"])
+      s.add_runtime_dependency(%q<perftools.rb>, ["~> 0.5"])
       s.add_runtime_dependency(%q<rack>, ["~> 1.0"])
       s.add_runtime_dependency(%q<open4>, ["~> 1.0"])
       s.add_development_dependency(%q<rack>, ["~> 1.1"])
