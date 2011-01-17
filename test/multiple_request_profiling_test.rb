@@ -76,6 +76,18 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       assert_equal '1', objects
     end
 
+    should "set CPUPROFILE_METHODS to 1 if mode is 'methods'" do
+      methods = ENV['CPUPROFILE_METHODS']
+      assert_nil methods
+      app = lambda do |env|
+        methods = ENV['CPUPROFILE_METHODS']
+        [200, {}, ["hi"]]
+      end
+      profiled_app = Rack::PerftoolsProfiler.new(app, :mode => 'methods')
+      profile(profiled_app, :data => :none)
+      assert_equal '1', methods
+    end
+
     should "not set CPUPROFILE_FREQUENCY by default" do
       frequency = ENV['CPUPROFILE_FREQUENCY']
       assert_nil frequency
@@ -192,6 +204,19 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         assert_equal '1', objects
       end
 
+      should "set CPUPROFILE_METHODS to 1 if mode is 'methods'" do
+        methods = ENV['CPUPROFILE_METHODS']
+        assert_nil methods
+        app = lambda do |env|
+          methods = ENV['CPUPROFILE_METHODS']
+          [200, {}, ["hi"]]
+        end
+        profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
+        modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=methods')
+        profile(profiled_app, :start => modified_start_env, :data => :none)
+        assert_equal '1', methods
+      end
+
       should "return to default mode if no mode is specified" do
         objects = ENV['CPUPROFILE_OBJECTS']
         assert_nil objects
@@ -220,7 +245,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status, _, body = profiled_app.call(modified_start_env)
 
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
                      RackResponseBody.new(body).to_s)
       end
 
@@ -233,7 +258,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status, _, body = profiled_app.call(modified_start_env)
 
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
                      RackResponseBody.new(body).to_s)
       end
 
@@ -246,7 +271,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status, _, body = profiled_app.call(modified_start_env)
 
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
                      RackResponseBody.new(body).to_s)
       end
 

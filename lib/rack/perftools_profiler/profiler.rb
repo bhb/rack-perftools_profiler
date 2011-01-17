@@ -22,9 +22,9 @@ module Rack::PerftoolsProfiler
     PROFILING_DATA_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.prof')
     PROFILING_SETTINGS_FILE = ::File.join(self.tmpdir, 'rack_perftools_profiler.config')
     DEFAULT_PRINTER = :text
-    MODES = [:cputime, :objects, :walltime]
+    MODES = [:cputime, :methods, :objects, :walltime]
     DEFAULT_MODE = :cputime
-    CHANGEABLE_MODES = [:objects]
+    CHANGEABLE_MODES = [:methods, :objects]
     UNSET_FREQUENCY = "-1"
     DEFAULT_GEMFILE_DIR = '.'
 
@@ -125,6 +125,7 @@ module Rack::PerftoolsProfiler
       end
       ENV['CPUPROFILE_REALTIME'] = '1' if mode_to_use == :walltime
       ENV['CPUPROFILE_OBJECTS'] = '1' if mode_to_use == :objects
+      ENV['CPUPROFILE_METHODS'] = '1' if mode_to_use == :methods
       ENV['CPUPROFILE_FREQUENCY'] = @frequency if @frequency != UNSET_FREQUENCY
     end
 
@@ -132,6 +133,7 @@ module Rack::PerftoolsProfiler
       ENV.delete('CPUPROFILE_REALTIME')
       ENV.delete('CPUPROFILE_FREQUENCY')
       ENV.delete('CPUPROFILE_OBJECTS')
+      ENV.delete('CPUPROFILE_METHODS')
     end
     
     def profiling=(value)
