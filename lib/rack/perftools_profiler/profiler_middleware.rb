@@ -8,7 +8,8 @@ module Rack::PerftoolsProfiler
     PRINTER_CONTENT_TYPE = {
       :text => 'text/plain',
       :gif => 'image/gif',
-      :pdf => 'application/pdf'
+      :pdf => 'application/pdf',
+      :callgrind => 'text/plain
     }
     
     PRINTERS = PRINTER_CONTENT_TYPE.keys
