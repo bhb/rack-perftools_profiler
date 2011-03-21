@@ -28,13 +28,13 @@ Include the middleware
 
 For Rails 2, add the following to config/environment.rb
 
- config.gem 'rack-perftools_profiler', :version => '~> 0.4', :lib => 'rack/perftools_profiler'
+ config.gem 'rack-perftools_profiler', :lib => 'rack/perftools_profiler'
  require 'rack/perftools_profiler'
  config.middleware.use ::Rack::PerftoolsProfiler, :default_printer => 'gif'
 
 For Rails 3, add the following to your Gemfile
 
-  gem 'rack-perftools_profiler', '~> 0.4', :require => 'rack/perftools_profiler'
+  gem 'rack-perftools_profiler', :require => 'rack/perftools_profiler'
 
 and add the following to config/application.rb
 
@@ -172,4 +172,4 @@ The basic idea and initial implementation of the middleware was heavily influenc
 
 == Copyright
 
-Copyright (c) 2010 Ben Brinckerhoff. See LICENSE for details.
+Copyright (c) 2010-2011 Ben Brinckerhoff. See LICENSE for details.
