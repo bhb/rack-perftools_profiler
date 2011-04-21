@@ -275,4 +275,41 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
     assert_equal env, old_env
   end
 
+  context "when request is not GET" do
+
+    should "not return profiling data" do
+      app = @app.clone
+      env = Rack::MockRequest.env_for('/', 
+                                      :method => 'post', 
+                                      :params => {'profile' => 'true'})
+      status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
+      assert_equal 200, status
+      assert_equal 'text/plain', headers['Content-Type']
+      assert_equal 'Oh hai der', RackResponseBody.new(body).to_s
+    end
+
+    should "call underlying app unchanged POST data" do
+      env = Rack::MockRequest.env_for('/', 
+                                      :method => 'post',
+                                      :params => 'profile=true&times=1&param=value&printer=gif&focus=foo&ignore=bar')
+      app = lambda do |env|
+        request = Rack::Request.new(env)
+        expected = 
+          {
+          'profile' => 'true',
+          'times' => '1',
+          'param' => 'value',
+          'printer' => 'gif',
+          'focus' => 'foo',
+          'ignore' => 'bar'
+        }
+        assert_equal expected, request.POST
+        [200, {}, ["hi"]]
+      end
+      
+      Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
+    end
+
+  end
+
 end

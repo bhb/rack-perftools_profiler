@@ -11,7 +11,7 @@ module Rack::PerftoolsProfiler
       if @profiler.profiling?
         [400, {'Content-Type' => 'text/plain'}, ["No profiling data available yet.\nVisit to /__stop__ to finish profiling."]]
       else
-        @middleware.profiler_data_response(@profiler.data(@data_params))
+        @middleware.profiler_data_response(@profiler.data(@get_params))
       end
     end
 

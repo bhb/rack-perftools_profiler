@@ -4,7 +4,7 @@ module Rack::PerftoolsProfiler
     
     def check_printer_arg
       request = Rack::Request.new(@env)
-      printer = request.params['printer']
+      printer = request.GET['printer']
       self.class.check_printer(printer, @env)
     end
 

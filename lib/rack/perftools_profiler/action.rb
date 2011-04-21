@@ -5,7 +5,7 @@ module Rack::PerftoolsProfiler
     def initialize(env, profiler, middleware)
       @env = env
       @request = Rack::Request.new(env)
-      @data_params = @request.params.clone
+      @get_params = @request.GET.clone
       @profiler = profiler
       @middleware = middleware
     end

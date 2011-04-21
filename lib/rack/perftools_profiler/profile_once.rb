@@ -5,14 +5,14 @@ module Rack::PerftoolsProfiler
     include Rack::PerftoolsProfiler::Utils
 
     def self.has_special_param?(request)
-      request.params['profile'] != nil
+      request.GET['profile'] != nil
     end
 
     def initialize(*args)
       super
       request = Rack::Request.new(@env)
-      @times = (request.params.fetch('times') {1}).to_i
-      @mode = let(request.params['mode']) do |m|
+      @times = (request.GET.fetch('times') {1}).to_i
+      @mode = let(request.GET['mode']) do |m|
         if m.nil? || m.empty?
           nil
         else
@@ -30,23 +30,23 @@ module Rack::PerftoolsProfiler
     end
 
     def response
-      @middleware.profiler_data_response(@profiler.data(@data_params))
+      @middleware.profiler_data_response(@profiler.data(@get_params))
     end
 
     def delete_custom_params(env)
       new_env = env.clone
       
-      params = Rack::Request.new(new_env).params
-      params.delete('profile')
-      params.delete('times')
-      params.delete('printer')
-      params.delete('ignore')
-      params.delete('focus')
+      get_params = Rack::Request.new(new_env).GET
+      get_params.delete('profile')
+      get_params.delete('times')
+      get_params.delete('printer')
+      get_params.delete('ignore')
+      get_params.delete('focus')
 
       new_env.delete('rack.request.query_string')
       new_env.delete('rack.request.query_hash')
 
-      new_env['QUERY_STRING'] = build_query(params)
+      new_env['QUERY_STRING'] = build_query(get_params)
       new_env
     end
 

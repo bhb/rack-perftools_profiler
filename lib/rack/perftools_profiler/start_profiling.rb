@@ -6,7 +6,7 @@ module Rack::PerftoolsProfiler
     def initialize(*args)
       super
       request = Rack::Request.new(@env)
-      @mode = let(request.params['mode']) do |m|
+      @mode = let(request.GET['mode']) do |m|
         if m.nil? || m.empty?
           nil
         else
