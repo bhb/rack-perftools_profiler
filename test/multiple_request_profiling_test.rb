@@ -300,7 +300,9 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       profiled_app = Rack::PerftoolsProfiler.new(app, :default_printer => 'text')
       profiled_app.call(@start_env)
       profiled_app.call(env)
-      assert_equal env, old_env
+      # I used to clone the environment to avoid conflicts, but this seems to break 
+      # Devise/Warden. 
+      # assert_equal env, old_env
     end
 
     should 'pass on non-profiling params in environment' do
@@ -314,7 +316,9 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       profiled_app = Rack::PerftoolsProfiler.new(app, :default_printer => 'text')
       profiled_app.call(@start_env)
       profiled_app.call(env)
-      assert_equal env, old_env
+      # I used to clone the environment to avoid conflicts, but this seems to break 
+      # Devise/Warden. 
+      # assert_equal env, old_env
     end
 
     should 'not alter regular calls' do

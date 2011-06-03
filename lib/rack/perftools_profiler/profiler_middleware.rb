@@ -20,7 +20,9 @@ module Rack::PerftoolsProfiler
     end
 
     def call(env)
-      @env = env.clone
+      # I used to clone the env, but it broke any apps that used Warden
+      # ex) @env = env.clone
+      @env = env
       action = Action.for_env(@env, @profiler, self)
       action.act
       action.response

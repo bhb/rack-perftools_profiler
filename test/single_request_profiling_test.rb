@@ -272,7 +272,9 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
     app = @app.clone
     app.expects(:call).with(expected_env)
     Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
-    assert_equal env, old_env
+    # I used to clone the environment to avoid conflicts, but this seems to break 
+    # Devise/Warden. 
+    # assert_equal env, old_env
   end
 
   context "when request is not GET" do

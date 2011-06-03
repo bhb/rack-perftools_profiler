@@ -34,7 +34,9 @@ module Rack::PerftoolsProfiler
     end
 
     def delete_custom_params(env)
-      new_env = env.clone
+      # I used to clone the env, but it broke any apps that used Warden
+      # ex) new_env = env.clone
+      new_env = env
       
       get_params = Rack::Request.new(new_env).GET
       get_params.delete('profile')
