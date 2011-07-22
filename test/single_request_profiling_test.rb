@@ -105,7 +105,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
       should "call pprof.rb using 'bundle' command if bundler is set" do
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
-        Open4.expects(:popen4).with(regexp_matches(/^bundle exec pprof\.rb/)).returns(status)
+        Open4.expects(:popen4).with('bundle', 'exec', 'pprof.rb', '--text', '/tmp/rack_perftools_profiler.prof').returns(status)
         profiled_app.call(@profiled_request_env)
       end
 
