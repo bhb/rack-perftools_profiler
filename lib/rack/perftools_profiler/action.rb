@@ -17,18 +17,22 @@ module Rack::PerftoolsProfiler
     def self.for_env(env, profiler, middleware)
       request = Rack::Request.new(env)
       klass = 
-        case request.path_info
-        when %r{/__start__$}
-          StartProfiling
-        when %r{/__stop__$}
-          StopProfiling
-        when %r{/__data__$}
-          ReturnData
+        if ENV["PROFILE_PASSWORD"] && request.GET['profile'] != ENV["PROFILE_PASSWORD"]
+          CallAppDirectly
         else
-          if ProfileOnce.has_special_param?(request)
-            ProfileOnce
+          case request.path_info
+          when %r{/__start__$}
+            StartProfiling
+          when %r{/__stop__$}
+            StopProfiling
+          when %r{/__data__$}
+            ReturnData
           else
-            CallAppDirectly
+            if ProfileOnce.has_special_param?(request)
+              ProfileOnce
+            else
+              CallAppDirectly
+            end
           end
         end
       klass.new(env, profiler, middleware)
