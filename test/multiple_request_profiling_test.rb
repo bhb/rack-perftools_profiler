@@ -176,6 +176,17 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       
     end
 
+    context "when the nodefraction parameter is specified" do
+      should "call pprof.rb with nodefraction" do
+        status = stub_everything(:exitstatus => 0)
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        custom_env = Rack::MockRequest.env_for('/method1', :params => 'profile=true&nodefraction=160')
+        Open4.expects(:popen4).with('pprof.rb', '--text',  '--nodefraction=160', '/tmp/rack_perftools_profiler.prof').returns(status)
+        profiled_app.call(custom_env)
+      end
+    end
+
+
     context "when overriding profiling mode" do
 
       should "default to configured mode if mode is empty string" do

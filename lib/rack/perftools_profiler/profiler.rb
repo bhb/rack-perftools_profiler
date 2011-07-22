@@ -84,10 +84,14 @@ module Rack::PerftoolsProfiler
       printer = (options.fetch('printer') {@printer}).to_sym
       ignore = options.fetch('ignore') { nil }
       focus = options.fetch('focus') { nil }
+      nodecount = options.fetch('nodecount') { nil }
+      nodefraction = options.fetch('nodefraction') { nil }
       if ::File.exists?(PROFILING_DATA_FILE)
         args = ["--#{printer}"]
-        args << " --ignore=#{ignore}" if ignore
-        args << " --focus=#{focus}" if focus
+        args << "--ignore=#{ignore}" if ignore
+        args << "--focus=#{focus}" if focus
+        args << "--nodecount=#{nodecount}" if nodecount
+        args << "--nodefraction=#{nodefraction}" if nodefraction
         args << PROFILING_DATA_FILE
         cmd = ["pprof.rb"] + args
         cmd = ["bundle", "exec"] + cmd if @bundler
