@@ -324,4 +324,25 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
 
   end
 
+  context "when a profile password is required" do
+    should "not profile unless the parameter matches" do
+      ENV["PROFILE_PASSWORD"] = 'secret_password'
+      app = @app.clone
+      env = Rack::MockRequest.env_for('/', :params => {'profile' => 'true'})
+      status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'pdf').call(env)
+      assert_equal 200, status
+      assert_equal 'text/plain', headers['Content-Type']
+      assert_equal 'Oh hai der', RackResponseBody.new(body).to_s
+      ENV.delete 'PROFILE_PASSWORD'
+    end
+
+    should "profile if the parameter matches" do
+      ENV["PROFILE_PASSWORD"] = 'secret_password'
+      env = Rack::MockRequest.env_for('/', :params => 'profile=secret_password&printer=gif')
+      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(env)
+      assert_equal 'image/gif', headers['Content-Type']
+      ENV.delete 'PROFILE_PASSWORD'
+    end
+  end
+
 end
