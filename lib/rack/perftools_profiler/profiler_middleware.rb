@@ -9,7 +9,8 @@ module Rack::PerftoolsProfiler
       :text => 'text/plain',
       :gif => 'image/gif',
       :pdf => 'application/pdf',
-      :callgrind => 'text/plain'
+      :callgrind => 'text/plain',
+      :raw => 'application/octet-stream'
     }
     
     PRINTERS = PRINTER_CONTENT_TYPE.keys
@@ -58,7 +59,7 @@ module Rack::PerftoolsProfiler
         'Content-Type' => PRINTER_CONTENT_TYPE[printer],
         'Content-Length' => content_length(body)
       }
-      if printer==:pdf
+      if printer ==:raw
         filetype = printer
         filename='profile_data'
         headers['Content-Disposition'] = %(attachment; filename="#{filename}.#{filetype}")
