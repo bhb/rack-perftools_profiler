@@ -9,7 +9,7 @@ module Rack::PerftoolsProfiler
     end
 
     def self.check_printer(printer, env=nil)
-      if printer != nil && !ProfilerMiddleware::PRINTERS.member?(printer.to_sym)
+      if printer != nil && printer != '' && !ProfilerMiddleware::PRINTERS.member?(printer.to_sym)
         message = "Invalid printer type: #{printer}. Valid printer values are #{ProfilerMiddleware::PRINTERS.join(", ")}" 
         raise ProfilerArgumentError, message
       end
