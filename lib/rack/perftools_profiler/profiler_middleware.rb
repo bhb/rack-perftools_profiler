@@ -9,7 +9,8 @@ module Rack::PerftoolsProfiler
       :text => 'text/plain',
       :gif => 'image/gif',
       :pdf => 'application/pdf',
-      :callgrind => 'text/plain'
+      :callgrind => 'text/plain',
+      :raw => 'application/octet-stream'
     }
     
     PRINTERS = PRINTER_CONTENT_TYPE.keys
