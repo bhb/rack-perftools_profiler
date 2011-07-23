@@ -61,7 +61,7 @@ module Rack::PerftoolsProfiler
         'Content-Type' => PRINTER_CONTENT_TYPE[printer],
         'Content-Length' => content_length(body)
       }
-      if printer==:pdf
+      if printer==:pdf || printer ==:raw
         filetype = printer
         filename='profile_data'
         headers['Content-Disposition'] = %(attachment; filename="#{filename}.#{filetype}")
