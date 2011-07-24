@@ -84,17 +84,23 @@ module Rack::PerftoolsProfiler
       printer = (options.fetch('printer') {@printer}).to_sym
       ignore = options.fetch('ignore') { nil }
       focus = options.fetch('focus') { nil }
+      nodecount = options.fetch('nodecount') { nil }
+      nodefraction = options.fetch('nodefraction') { nil }
       if ::File.exists?(PROFILING_DATA_FILE)
-        args = "--#{printer}"
-        args += " --ignore=#{ignore}" if ignore
-        args += " --focus=#{focus}" if focus
-        cmd = "pprof.rb #{args} #{PROFILING_DATA_FILE}"
-        cmd = "bundle exec " + cmd if @bundler
-        stdout, stderr, status = Dir.chdir(@gemfile_dir) { run(cmd) }
+        args = ["--#{printer}"]
+        args << "--ignore=#{ignore}" if ignore
+        args << "--focus=#{focus}" if focus
+        args << "--nodecount=#{nodecount}" if nodecount
+        args << "--nodefraction=#{nodefraction}" if nodefraction
+        args << PROFILING_DATA_FILE
+        cmd = ["pprof.rb"] + args
+        cmd = ["bundle", "exec"] + cmd if @bundler
+
+        stdout, stderr, status = Dir.chdir(@gemfile_dir) { run(*cmd) }
         if status!=0
-          raise ProfilingError.new("Running the command '#{cmd}' exited with status #{status}", stderr)
+          raise ProfilingError.new("Running the command '#{cmd.join(" ")}' exited with status #{status}", stderr)
         elsif stdout.length == 0 && stderr.length > 0
-          raise ProfilingError.new("Running the command '#{cmd}' failed to generate a file", stderr)
+          raise ProfilingError.new("Running the command '#{cmd.join(" ")}' failed to generate a file", stderr)
         else
           [printer, stdout]
         end
@@ -105,10 +111,10 @@ module Rack::PerftoolsProfiler
 
     private
 
-    def run(command)
+    def run(*command)
       out = err = ""
       pid = nil
-      status = Open4.popen4(command) do |pid, stdin, stdout, stderr|
+      status = Open4.popen4(*command) do |pid, stdin, stdout, stderr|
         stdin.close
         pid = pid
         out = stdout.read

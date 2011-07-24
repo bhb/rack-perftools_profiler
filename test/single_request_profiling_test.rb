@@ -105,7 +105,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
       should "call pprof.rb using 'bundle' command if bundler is set" do
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
-        Open4.expects(:popen4).with(regexp_matches(/^bundle exec pprof\.rb/)).returns(status)
+        Open4.expects(:popen4).with('bundle', 'exec', 'pprof.rb', '--text', '/tmp/rack_perftools_profiler.prof').returns(status)
         profiled_app.call(@profiled_request_env)
       end
 
@@ -121,6 +121,16 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
         profiled_app.call(@profiled_request_env)
       end
       
+    end
+
+    context "when the nodecount parameter is specified" do
+      should "call pprof.rb with nodecount" do
+        status = stub_everything(:exitstatus => 0)
+        profiled_app = Rack::PerftoolsProfiler.new(@app)
+        custom_env = Rack::MockRequest.env_for('/method1', :params => 'profile=true&nodecount=160')
+        Open4.expects(:popen4).with('pprof.rb', '--text',  '--nodecount=160', '/tmp/rack_perftools_profiler.prof').returns(status)
+        profiled_app.call(custom_env)
+      end
     end
 
     context "when overriding profiling mode" do
@@ -312,6 +322,27 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
       Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
     end
 
+  end
+
+  context "when a profile password is required" do
+    should "not profile unless the parameter matches" do
+      ENV["PROFILE_PASSWORD"] = 'secret_password'
+      app = @app.clone
+      env = Rack::MockRequest.env_for('/', :params => {'profile' => 'true'})
+      status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'pdf').call(env)
+      assert_equal 200, status
+      assert_equal 'text/plain', headers['Content-Type']
+      assert_equal 'Oh hai der', RackResponseBody.new(body).to_s
+      ENV.delete 'PROFILE_PASSWORD'
+    end
+
+    should "profile if the parameter matches" do
+      ENV["PROFILE_PASSWORD"] = 'secret_password'
+      env = Rack::MockRequest.env_for('/', :params => 'profile=secret_password&printer=gif')
+      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(env)
+      assert_equal 'image/gif', headers['Content-Type']
+      ENV.delete 'PROFILE_PASSWORD'
+    end
   end
 
 end
