@@ -10,7 +10,7 @@ begin
     gem.email = 'ben@bbrinck.com'
     gem.homepage = 'http://github.com/bhb/rack-perftools_profiler'
     gem.authors = ['Ben Brinckerhoff']
-    gem.add_dependency 'perftools.rb', '~> 0.5'
+    gem.add_dependency 'perftools.rb', '~> 0.5.6'
     gem.add_dependency 'rack', '~> 1.0'
     gem.add_dependency('open4', '~> 1.0')
     gem.add_development_dependency 'rack', '~> 1.1'

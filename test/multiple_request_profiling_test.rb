@@ -158,7 +158,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       should "call pprof.rb using 'bundle' command if bundler is set" do
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
-        Open4.expects(:popen4).with('bundle', 'exec', 'pprof.rb', '--text', '/tmp/rack_perftools_profiler.prof').returns(status)
+        Open4.expects(:popen4).with('bundle', 'exec', 'pprof.rb', '--text', regexp_matches(/rack_perftools_profiler\.prof$/)).returns(status)
         profile(profiled_app)
       end
 
@@ -181,7 +181,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app)
         custom_env = Rack::MockRequest.env_for('/method1', :params => 'profile=true&nodefraction=160')
-        Open4.expects(:popen4).with('pprof.rb', '--text',  '--nodefraction=160', '/tmp/rack_perftools_profiler.prof').returns(status)
+        Open4.expects(:popen4).with('pprof.rb', '--text',  '--nodefraction=160', regexp_matches(/rack_perftools_profiler\.prof$/)).returns(status)
         profiled_app.call(custom_env)
       end
     end

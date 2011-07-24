@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Brinckerhoff"]
-  s.date = %q{2011-06-02}
+  s.date = %q{2011-07-24}
   s.description = %q{Middleware for profiling Rack-compatible apps using perftools.rb}
   s.email = %q{ben@bbrinck.com}
   s.extra_rdoc_files = [
@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
     "lib/rack/perftools_profiler/start_profiling.rb",
     "lib/rack/perftools_profiler/stop_profiling.rb",
     "lib/rack/perftools_profiler/utils.rb",
+    "rack-perftools_profiler-0.4.1.gem",
     "rack-perftools_profiler.gemspec",
     "test/multiple_request_profiling_test.rb",
     "test/rack-perftools-profiler_test.rb",
@@ -48,14 +49,14 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<perftools.rb>, ["~> 0.5"])
+      s.add_runtime_dependency(%q<perftools.rb>, ["~> 0.5.6"])
       s.add_runtime_dependency(%q<rack>, ["~> 1.0"])
       s.add_runtime_dependency(%q<open4>, ["~> 1.0"])
       s.add_development_dependency(%q<rack>, ["~> 1.1"])
       s.add_development_dependency(%q<shoulda>, ["~> 2.10"])
       s.add_development_dependency(%q<mocha>, ["~> 0.9"])
     else
-      s.add_dependency(%q<perftools.rb>, ["~> 0.5"])
+      s.add_dependency(%q<perftools.rb>, ["~> 0.5.6"])
       s.add_dependency(%q<rack>, ["~> 1.0"])
       s.add_dependency(%q<open4>, ["~> 1.0"])
       s.add_dependency(%q<rack>, ["~> 1.1"])
@@ -63,7 +64,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<mocha>, ["~> 0.9"])
     end
   else
-    s.add_dependency(%q<perftools.rb>, ["~> 0.5"])
+    s.add_dependency(%q<perftools.rb>, ["~> 0.5.6"])
     s.add_dependency(%q<rack>, ["~> 1.0"])
     s.add_dependency(%q<open4>, ["~> 1.0"])
     s.add_dependency(%q<rack>, ["~> 1.1"])
