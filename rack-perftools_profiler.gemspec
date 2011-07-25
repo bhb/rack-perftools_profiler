@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Brinckerhoff"]
-  s.date = %q{2011-07-24}
+  s.date = %q{2011-07-25}
   s.description = %q{Middleware for profiling Rack-compatible apps using perftools.rb}
   s.email = %q{ben@bbrinck.com}
   s.extra_rdoc_files = [
@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
     "lib/rack/perftools_profiler/profiler.rb",
     "lib/rack/perftools_profiler/profiler_middleware.rb",
     "lib/rack/perftools_profiler/return_data.rb",
+    "lib/rack/perftools_profiler/return_password_error.rb",
     "lib/rack/perftools_profiler/start_profiling.rb",
     "lib/rack/perftools_profiler/stop_profiling.rb",
     "lib/rack/perftools_profiler/utils.rb",
