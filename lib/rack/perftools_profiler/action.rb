@@ -17,8 +17,8 @@ module Rack::PerftoolsProfiler
     def self.for_env(env, profiler, middleware)
       request = Rack::Request.new(env)
       klass = 
-        if ENV["PROFILE_PASSWORD"] && request.GET['profile'] != ENV["PROFILE_PASSWORD"]
-          CallAppDirectly
+        if !profiler.password_valid?(request.GET['profile'])
+          ReturnPasswordError
         else
           case request.path_info
           when %r{/__start__$}

@@ -54,11 +54,12 @@ For Rack::Builder, call 'use' inside the Builder constructor block
     
 == Options
 
-* :default_printer - can be set to 'text', 'gif', or 'pdf'. Default is :text
+* :default_printer - can be set to 'text', 'gif', or 'pdf'. Default is 'text'.
 * :mode            - can be set to 'cputime', 'methods', 'objects', 'walltime'. Default is :cputime. See the 'Profiling Modes' section below.
-* :frequency       - in :cputime mode, the number of times per second the app will be sampled. Default is 100 (times/sec)
-* :bundler         - run the profiler binary using 'bundle' if set to true. Default is false
+* :frequency       - in :cputime mode, the number of times per second the app will be sampled. Default is 100 (times/sec).
+* :bundler         - run the profiler binary using 'bundle' if set to true. Default is false.
 * :gemfile_dir     - directory with Gemfile. Default is the current directory.
+* :password        - password-protect profiling.
 
 == Usage 
 
@@ -138,6 +139,16 @@ When profiling using multiple requests, add the option when visiting \_\_start\_
   curl http://localhost:3000/__start__?mode=objects
 
 If the 'mode' option is omitted, the middleware will default to the mode specified at configuration.
+
+== Profiling in production
+
+It is recommended that you always profile your application in the 'production' environment (using `rails server -e production` or an equivalent), since there can be important differences between 'development' and 'production' that may affect performance.
+
+However, it is recommended that you profile your application on a development or staging machine rather than on a production machine. This is because profiling with multiple requests *will not* work if your app is running in multiple Ruby server processes.
+
+Profiling a single request will work if there are multiple server processes. If your staging machine is publicly accessible, you can password-protect single-request profiling by using the `:password` option and then using the `profile` GET parameter to provide the password:
+
+  curl http://localhost:3000/foobar?profile=PASSWORD
 
 == Changing behavior with environment variables
 

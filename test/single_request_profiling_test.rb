@@ -325,23 +325,19 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
   end
 
   context "when a profile password is required" do
-    should "not profile unless the parameter matches" do
-      ENV["PROFILE_PASSWORD"] = 'secret_password'
+    should "error if password does not match" do
       app = @app.clone
       env = Rack::MockRequest.env_for('/', :params => {'profile' => 'true'})
-      status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'pdf').call(env)
-      assert_equal 200, status
+      status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'pdf', :password => 'secret_password').call(env)
+      assert_equal 401, status
       assert_equal 'text/plain', headers['Content-Type']
-      assert_equal 'Oh hai der', RackResponseBody.new(body).to_s
-      ENV.delete 'PROFILE_PASSWORD'
+      assert_match /Profiling is password-protected\. Password is incorrect\./, RackResponseBody.new(body).to_s
     end
 
     should "profile if the parameter matches" do
-      ENV["PROFILE_PASSWORD"] = 'secret_password'
       env = Rack::MockRequest.env_for('/', :params => 'profile=secret_password&printer=gif')
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(env)
+      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf', :password => 'secret_password').call(env)
       assert_equal 'image/gif', headers['Content-Type']
-      ENV.delete 'PROFILE_PASSWORD'
     end
   end
 

@@ -12,6 +12,7 @@ require 'rack/perftools_profiler/profile_data_action'
 require 'rack/perftools_profiler/profile_once'
 require 'rack/perftools_profiler/return_data'
 require 'rack/perftools_profiler/call_app_directly'
+require 'rack/perftools_profiler/return_password_error'
 
 module Rack::PerftoolsProfiler
 

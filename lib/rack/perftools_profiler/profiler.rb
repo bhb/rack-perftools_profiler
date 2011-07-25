@@ -32,8 +32,9 @@ module Rack::PerftoolsProfiler
       @printer     = (options.delete(:default_printer) { DEFAULT_PRINTER }).to_sym
       @frequency   = (options.delete(:frequency) { UNSET_FREQUENCY }).to_s
       @mode        = (options.delete(:mode) { DEFAULT_MODE }).to_sym
-      @bundler     = (options.delete(:bundler) { false })
-      @gemfile_dir = (options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR })
+      @bundler     = options.delete(:bundler) { false }
+      @gemfile_dir = options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR }
+      @password    = options.delete(:password) { nil }
       @mode_for_request = nil
       ProfileDataAction.check_printer(@printer)
       ensure_mode_is_valid(@mode)
@@ -52,6 +53,10 @@ module Rack::PerftoolsProfiler
 
     def self.clear_data
       ::File.delete(PROFILING_DATA_FILE) if ::File.exists?(PROFILING_DATA_FILE)
+    end
+
+    def password_valid?(password)
+      @password.nil? || password == @password
     end
     
     def start(mode = nil)
