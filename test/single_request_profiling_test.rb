@@ -258,11 +258,11 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
 
   end
   
-  context 'when using the pdf printer' do
+  context 'when using the raw printer' do
 
     should 'have default filename' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(@profiled_request_env)
-      assert_equal %q{attachment; filename="profile_data.pdf"}, headers['Content-Disposition']
+      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'raw').call(@profiled_request_env)
+      assert_equal %q{attachment; filename="profile_data.raw"}, headers['Content-Disposition']
     end
 
   end
