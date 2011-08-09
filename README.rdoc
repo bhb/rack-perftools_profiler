@@ -42,7 +42,7 @@ and add the following to config/application.rb
 
 For Sinatra, call 'use' inside a configure block, like so:
 
-  configure :profiling do
+  configure do
     use ::Rack::PerftoolsProfiler, :default_printer => 'gif'
   end
 
