@@ -325,6 +325,18 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
   end
 
   context "when a profile password is required" do
+    should "call the app directly when 'profile' is not a request parameter" do
+      env = Rack::MockRequest.env_for('/', :params => {})
+      app = lambda do |env|
+        request = Rack::Request.new(env)
+        assert_equal( {}, request.GET)
+        [200, {}, ["HI"]]
+      end
+      status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'pdf', :password => "secret_password").call(env)
+      assert_equal 200, status
+      assert_equal ["HI"], body
+    end
+
     should "error if password does not match" do
       app = @app.clone
       env = Rack::MockRequest.env_for('/', :params => {'profile' => 'true'})
