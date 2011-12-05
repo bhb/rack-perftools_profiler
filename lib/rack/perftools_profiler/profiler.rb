@@ -58,7 +58,11 @@ module Rack::PerftoolsProfiler
     def password_valid?(password)
       @password.nil? || password == @password
     end
-    
+
+    def should_check_password?
+      ! @password.nil?
+    end
+
     def start(mode = nil)
       ensure_mode_is_changeable(mode) if mode
       PerfTools::CpuProfiler.stop
