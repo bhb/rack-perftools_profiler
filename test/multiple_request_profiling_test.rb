@@ -8,14 +8,14 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     @start_env = Rack::MockRequest.env_for('/__start__')
     @stop_env = Rack::MockRequest.env_for('/__stop__')
     @data_env = Rack::MockRequest.env_for('/__data__')
-    @root_request_env = Rack::MockRequest.env_for("/")    
+    @root_request_env = Rack::MockRequest.env_for("/")
   end
 
   def profile(profiled_app, options = {})
     start = options.fetch(:start) { @start_env }
     stop = options.fetch(:stop) { @stop_env }
     data = options.fetch(:data) { @data_env }
-    
+
     profiled_app.call(start) if start != :none
     if block_given?
       yield profiled_app
@@ -116,7 +116,8 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     should "allow 'printer' param to override :default_printer option'" do
       profiled_app = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf')
       custom_data_env = Rack::MockRequest.env_for('__data__', :params => 'printer=gif')
-      _, headers, _ = profile(profiled_app, :data => custom_data_env)
+      status, headers, body = profile(profiled_app, :data => custom_data_env)
+      assert_ok status, body
       assert_equal 'image/gif', headers['Content-Type']
     end
 
@@ -154,7 +155,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     end
 
     context "when in bundler mode" do
-      
+
       should "call pprof.rb using 'bundle' command if bundler is set" do
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
@@ -173,7 +174,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         Dir.expects(:chdir).with('.').returns(["","",0])
         profile(profiled_app)
       end
-      
+
     end
 
     context "when the nodefraction parameter is specified" do
@@ -239,11 +240,11 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         profiled_app = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
         modified_start_env = Rack::MockRequest.env_for('/__start__', :params => 'mode=objects')
         profile(profiled_app, :start => modified_start_env, :data => :none)
-        
+
         assert_equal '1', objects
 
         profile(profiled_app, :data => :none)
-        
+
         assert_nil objects
       end
 
@@ -256,7 +257,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status, _, body = profiled_app.call(modified_start_env)
 
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/,
                      RackResponseBody.new(body).to_s)
       end
 
@@ -269,7 +270,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status, _, body = profiled_app.call(modified_start_env)
 
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/,
                      RackResponseBody.new(body).to_s)
       end
 
@@ -282,12 +283,12 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
         status, _, body = profiled_app.call(modified_start_env)
 
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/,
                      RackResponseBody.new(body).to_s)
       end
 
     end
-    
+
   end
 
   context 'when profiling is enabled' do
@@ -311,8 +312,8 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       profiled_app = Rack::PerftoolsProfiler.new(app, :default_printer => 'text')
       profiled_app.call(@start_env)
       profiled_app.call(env)
-      # I used to clone the environment to avoid conflicts, but this seems to break 
-      # Devise/Warden. 
+      # I used to clone the environment to avoid conflicts, but this seems to break
+      # Devise/Warden.
       # assert_equal env, old_env
     end
 
@@ -327,8 +328,8 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
       profiled_app = Rack::PerftoolsProfiler.new(app, :default_printer => 'text')
       profiled_app.call(@start_env)
       profiled_app.call(env)
-      # I used to clone the environment to avoid conflicts, but this seems to break 
-      # Devise/Warden. 
+      # I used to clone the environment to avoid conflicts, but this seems to break
+      # Devise/Warden.
       # assert_equal env, old_env
     end
 
@@ -353,7 +354,7 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     end
 
   end
-  
+
   should 'keeps data from multiple calls' do
     profiled_app = Rack::PerftoolsProfiler.with_profiling_off(TestApp.new, :default_printer => 'text', :mode => 'walltime')
     status, headers, body = profile(profiled_app) do |app|

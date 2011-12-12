@@ -6,7 +6,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
   def setup
     @app = lambda { |env| ITERATIONS.times {1+2+3+4+5}; [200, {'Content-Type' => 'text/plain'}, ['Oh hai der']] }
     @slow_app = lambda { |env| ITERATIONS.times {1+2+3+4+5}; [200, {'Content-Type' => 'text/plain'}, ['slow app']] }
-    @root_request_env = Rack::MockRequest.env_for("/")    
+    @root_request_env = Rack::MockRequest.env_for("/")
     @profiled_request_env = Rack::MockRequest.env_for("/", :params => "profile=true")
     @profiled_request_env_with_times = Rack::MockRequest.env_for("/", :params => "profile=true&times=2")
   end
@@ -75,7 +75,8 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
 
     should "allow 'printer' param override :default_printer option'" do
       env = Rack::MockRequest.env_for('/', :params => 'profile=true&printer=gif')
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(env)
+      assert_ok status, body
       assert_equal 'image/gif', headers['Content-Type']
     end
 
@@ -101,7 +102,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
     end
 
     context "when in bundler mode" do
-      
+
       should "call pprof.rb using 'bundle' command if bundler is set" do
         status = stub_everything(:exitstatus => 0)
         profiled_app = Rack::PerftoolsProfiler.new(@app, :bundler => true)
@@ -120,7 +121,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
         Dir.expects(:chdir).with('.').returns(["","",0])
         profiled_app.call(@profiled_request_env)
       end
-      
+
     end
 
     context "when the nodecount parameter is specified" do
@@ -178,7 +179,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
           objects = ENV['CPUPROFILE_OBJECTS']
           [200, {}, ["hi"]]
         end
-        
+
         request = Rack::MockRequest.env_for("/", :params => 'profile=true&mode=objects')
         rack_profiler = Rack::PerftoolsProfiler.new(app, :mode => :cputime)
         rack_profiler.call(request)
@@ -192,7 +193,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
         request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
         status, _, body = profiled_app.call(request)
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/,
                      RackResponseBody.new(body).to_s)
       end
 
@@ -202,8 +203,8 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
         request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
         status, _, body = profiled_app.call(request)
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
-                     RackResponseBody.new(body).to_s)        
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/,
+                     RackResponseBody.new(body).to_s)
       end
 
       should "return error message if mode is 'cputime'" do
@@ -212,8 +213,8 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
         request = Rack::MockRequest.env_for("/", :params => "profile=true&mode=#{mode}")
         status, _, body = profiled_app.call(request)
         assert_equal 400, status
-        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/, 
-                     RackResponseBody.new(body).to_s)        
+        assert_match(/Cannot change mode to '#{mode}'.\nPer-request mode changes are only available for the following modes: 'methods', 'objects'/,
+                     RackResponseBody.new(body).to_s)
       end
 
     end
@@ -231,7 +232,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
       _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'text').call(@profiled_request_env)
       assert_equal "text/plain", headers['Content-Type']
     end
-    
+
     should 'have Content-Length' do
       _, headers, _ = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'text').call(@profiled_request_env)
       assert (headers.fetch('Content-Length').to_i > 500)
@@ -242,26 +243,30 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
   context 'when using the gif printer' do
 
     should 'gif printer has Content-Type image/gif' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'gif').call(@profiled_request_env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@app, :default_printer => 'gif').call(@profiled_request_env)
+      assert_ok status, body
       assert_equal "image/gif", headers['Content-Type']
     end
 
     should 'gif printer has Content-Length' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'gif').call(@profiled_request_env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'gif').call(@profiled_request_env)
+      assert_ok status, body
       assert headers.fetch('Content-Length').to_i > 25_000
     end
 
     should 'pdf printer has Content-Type application/pdf' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(@profiled_request_env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf').call(@profiled_request_env)
+      assert_ok status, body
       assert_equal "application/pdf", headers['Content-Type']
     end
 
   end
-  
+
   context 'when using the raw printer' do
 
     should 'have default filename' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'raw').call(@profiled_request_env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@app, :default_printer => 'raw').call(@profiled_request_env)
+      assert_ok status, body
       assert_equal %q{attachment; filename="profile_data.raw"}, headers['Content-Disposition']
     end
 
@@ -282,8 +287,8 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
     app = @app.clone
     app.expects(:call).with(expected_env)
     Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
-    # I used to clone the environment to avoid conflicts, but this seems to break 
-    # Devise/Warden. 
+    # I used to clone the environment to avoid conflicts, but this seems to break
+    # Devise/Warden.
     # assert_equal env, old_env
   end
 
@@ -291,8 +296,8 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
 
     should "not return profiling data" do
       app = @app.clone
-      env = Rack::MockRequest.env_for('/', 
-                                      :method => 'post', 
+      env = Rack::MockRequest.env_for('/',
+                                      :method => 'post',
                                       :params => {'profile' => 'true'})
       status, headers, body = Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
       assert_equal 200, status
@@ -301,12 +306,12 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
     end
 
     should "call underlying app unchanged POST data" do
-      env = Rack::MockRequest.env_for('/', 
+      env = Rack::MockRequest.env_for('/',
                                       :method => 'post',
                                       :params => 'profile=true&times=1&param=value&printer=gif&focus=foo&ignore=bar')
       app = lambda do |env|
         request = Rack::Request.new(env)
-        expected = 
+        expected =
           {
           'profile' => 'true',
           'times' => '1',
@@ -318,7 +323,7 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
         assert_equal expected, request.POST
         [200, {}, ["hi"]]
       end
-      
+
       Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
     end
 
@@ -336,7 +341,8 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
 
     should "profile if the parameter matches" do
       env = Rack::MockRequest.env_for('/', :params => 'profile=secret_password&printer=gif')
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf', :password => 'secret_password').call(env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@app, :default_printer => 'pdf', :password => 'secret_password').call(env)
+      assert_ok status, body
       assert_equal 'image/gif', headers['Content-Type']
     end
   end
