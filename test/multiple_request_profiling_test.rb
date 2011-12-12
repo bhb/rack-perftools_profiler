@@ -365,4 +365,70 @@ class MultipleRequestProfilingTest < Test::Unit::TestCase
     assert_match(/method2/, RackResponseBody.new(body).to_s)
   end
 
+  context "when a profile password is required" do
+
+    should_eventually "allow the app to be called directly" do
+    end
+    
+    should "call __start__ if password is provided" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :password => "secret")
+      actual_password = "secret"
+      modified_start_env = Rack::MockRequest.env_for('/__start__', :params => "profile=#{actual_password}")
+      status, _, body = profiled_app.call(modified_start_env)
+      assert_equal 200, status
+      assert_match(/Profiling is now enabled/, RackResponseBody.new(body).to_s)
+    end
+
+    should "call __stop__ if password is provided" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :password => "secret")
+      actual_password = "secret"
+      modified_stop_env = Rack::MockRequest.env_for('/__stop__', :params => "profile=#{actual_password}")
+      status, _, body = profiled_app.call(modified_stop_env)
+      assert_equal 200, status
+      assert_match(/Profiling is now disabled/, RackResponseBody.new(body).to_s)
+    end
+
+    should_eventually "call __data__ if password is provided" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :password => "secret")
+      actual_password = "secret"
+      modified_start_env = Rack::MockRequest.env_for('/__start__', :params => "profile=#{actual_password}")
+      modified_stop_env = Rack::MockRequest.env_for('/__stop__', :params => "profile=#{actual_password}")
+      modified_data_env = Rack::MockRequest.env_for('/__data__', :params => "profile=#{actual_password}")
+      profiled_app.call(modified_start_env)
+      profiled_app.call(Rack::MockRequest.env_for("/"))
+      profiled_app.call(modified_stop_env)
+      status, _, body = profiled_app.call(modified_data_env)
+      assert_equal 200, status
+      assert_match(/Profiling is now disabled/, RackResponseBody.new(body).to_s)
+    end
+
+    should "error on __start__ if password does not match" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :password => "secret")
+      actual_password = "foobar"
+      modified_start_env = Rack::MockRequest.env_for('/__start__', :params => "profile=#{actual_password}")
+      status, _, body = profiled_app.call(modified_start_env)
+      assert_equal 401, status
+      assert_match(/Profiling is password-protected/, RackResponseBody.new(body).to_s)
+    end
+
+    should "error on __stop__ if password does not match" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :password => "secret")
+      actual_password = "foobar"
+      modified_stop_env = Rack::MockRequest.env_for('/__stop__', :params => "profile={actual_password}")
+      status, _, body = profiled_app.call(modified_stop_env)
+      assert_equal 401, status
+      assert_match(/Profiling is password-protected/, RackResponseBody.new(body).to_s)
+    end
+
+    should "error on __data__ if password does not match" do
+      profiled_app = Rack::PerftoolsProfiler.new(@app, :password => "secret")
+      actual_password = "foobar"
+      modified_data_env = Rack::MockRequest.env_for('/__data__', :params => "profile={actual_password}")
+      status, _, body = profiled_app.call(modified_data_env)
+      assert_equal 401, status
+      assert_match(/Profiling is password-protected/, RackResponseBody.new(body).to_s)
+    end
+
+  end
+
 end
