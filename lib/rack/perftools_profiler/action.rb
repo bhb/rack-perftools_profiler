@@ -17,17 +17,18 @@ module Rack::PerftoolsProfiler
     def self.for_env(env, profiler, middleware)
       request = Rack::Request.new(env)
       password = request.GET['profile']
+      accepted = profiler.accepts?(password)
       klass =
         case request.path_info
         when %r{/__start__$}
-          password_protected(StartProfiling, profiler, password)
+          password_protect(StartProfiling, accepted)
         when %r{/__stop__$}
-          password_protected(StopProfiling, profiler, password)
+          password_protect(StopProfiling, accepted)
         when %r{/__data__$}
-          password_protected(ReturnData, profiler, password)
+          password_protect(ReturnData, accepted)
         else
           if ProfileOnce.has_special_param?(request)
-            password_protected(ProfileOnce, profiler, password)
+            password_protect(ProfileOnce, accepted)
           else
             CallAppDirectly
           end
@@ -37,12 +38,8 @@ module Rack::PerftoolsProfiler
 
     private
 
-    def self.password_protected(klass, profiler, password)
-      if profiler.accepts?(password)
-        klass
-      else
-        ReturnPasswordError
-      end
+    def self.password_protect(klass, accepted)
+      accepted ? klass : ReturnPasswordError
     end
 
   end
