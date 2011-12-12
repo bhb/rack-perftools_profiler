@@ -30,11 +30,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'mocha', '~> 0.9'
   s.add_development_dependency 'rake',  '~> 0.9.2'
 
-  require 'rake/testtask'
-  Rake::TestTask.new(:test) do |test|
-    test.libs << 'lib' << 'test'
-    test.pattern = 'test/**/*_test.rb'
-    test.verbose = true
-  end
-
 end
