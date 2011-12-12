@@ -34,7 +34,7 @@ module Rack::PerftoolsProfiler
       @mode        = (options.delete(:mode) { DEFAULT_MODE }).to_sym
       @bundler     = options.delete(:bundler) { false }
       @gemfile_dir = options.delete(:gemfile_dir) { DEFAULT_GEMFILE_DIR }
-      @password    = options.delete(:password) { nil }
+      @password    = options.delete(:password) { :not_set }
       @mode_for_request = nil
       ProfileDataAction.check_printer(@printer)
       ensure_mode_is_valid(@mode)
@@ -43,7 +43,7 @@ module Rack::PerftoolsProfiler
       require 'perftools'
       raise ProfilerArgumentError, "Invalid option(s): #{options.keys.join(' ')}" unless options.empty?
     end
-    
+
     def profile(mode = nil)
       start(mode)
       yield
@@ -55,12 +55,20 @@ module Rack::PerftoolsProfiler
       ::File.delete(PROFILING_DATA_FILE) if ::File.exists?(PROFILING_DATA_FILE)
     end
 
+    def accepts?(password)
+      if password_protected?
+        password_valid?(password)
+      else
+        true
+      end
+    end
+
     def password_valid?(password)
       @password.nil? || password == @password
     end
 
-    def should_check_password?
-      ! @password.nil?
+    def password_protected?
+      @password != :not_set
     end
 
     def start(mode = nil)
@@ -68,7 +76,7 @@ module Rack::PerftoolsProfiler
       PerfTools::CpuProfiler.stop
       if (mode)
         @mode_for_request = mode
-      end  
+      end
       unset_env_vars
       set_env_vars
       PerfTools::CpuProfiler.start(PROFILING_DATA_FILE)
@@ -150,7 +158,7 @@ module Rack::PerftoolsProfiler
       ENV.delete('CPUPROFILE_OBJECTS')
       ENV.delete('CPUPROFILE_METHODS')
     end
-    
+
     def profiling=(value)
       pstore_transaction(false) do |store|
         store[:profiling?] = value
