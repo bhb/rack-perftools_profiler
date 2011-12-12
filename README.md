@@ -2,6 +2,21 @@
 
 Middleware for profiling Rack-compatible apps using [perftools.rb](http://github.com/tmm1/perftools.rb)
 
+## Quick start
+
+Assuming your application is using Rails 3 (and you have installed the requirements in the next section), add the following code:
+
+Gemfile:
+    gem 'rack-perftools_profiler', :require => 'rack/perftools_profiler'
+
+config/environment.rb:
+
+    config.middleware.use ::Rack::PerftoolsProfiler, :default_printer => 'gif', :bundler => true
+
+The visit the page you want to profile:
+
+    http://localhost:3000/some_action?profile=true
+
 ## Requirements
 
 You'll need graphviz to generate call graphs using dot (for the GIF printer):
