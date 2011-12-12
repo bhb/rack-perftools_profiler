@@ -7,6 +7,7 @@ Middleware for profiling Rack-compatible apps using [perftools.rb](http://github
 Assuming your application is using Rails 3 (and you have installed the requirements in the next section), add the following code:
 
 Gemfile:
+
     gem 'rack-perftools_profiler', :require => 'rack/perftools_profiler'
 
 config/environment.rb:
@@ -170,12 +171,15 @@ The mode and frequency settings are enabled by setting environment variables. So
 If you need to require 'perftools' before 'rack/perftools_profiler' (or you have other problems changing the mode or frequency), try using these environment variables yourself.
 
 Setting the frequency:
+
     CPUPROFILE_FREQUENCY=500 ruby your_app.rb
 
 Setting the mode to 'wall time'
+
     CPUPROFILE_REALTIME=1 ruby your_app.rb
 
 Setting the mode to 'object allocation'
+
     CPUPROFILE_OBJECTS=1 ruby your_app.rb
 
 ## Acknowledgments
