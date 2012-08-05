@@ -98,35 +98,47 @@ module Rack::PerftoolsProfiler
     end
 
     def data(options = {})
-      printer = (options.fetch('printer') {@printer}).to_sym
-      ignore = options.fetch('ignore') { nil }
-      focus = options.fetch('focus') { nil }
-      nodecount = options.fetch('nodecount') { nil }
-      nodefraction = options.fetch('nodefraction') { nil }
       if ::File.exists?(PROFILING_DATA_FILE)
-        args = ["--#{printer}"]
-        args << "--ignore=#{ignore}" if ignore
-        args << "--focus=#{focus}" if focus
-        args << "--nodecount=#{nodecount}" if nodecount
-        args << "--nodefraction=#{nodefraction}" if nodefraction
-        args << PROFILING_DATA_FILE
-        cmd = ["pprof.rb"] + args
-        cmd = ["bundle", "exec"] + cmd if @bundler
-
-        stdout, stderr, status = Dir.chdir(@gemfile_dir) { run(*cmd) }
-        if status!=0
-          raise ProfilingError.new("Running the command '#{cmd.join(" ")}' exited with status #{status}", stderr)
-        elsif stdout.length == 0 && stderr.length > 0
-          raise ProfilingError.new("Running the command '#{cmd.join(" ")}' failed to generate a file", stderr)
-        else
-          [printer, stdout]
-        end
+        data_from_file(options)
       else
         [:none, nil]
       end
     end
 
     private
+
+    def data_from_file(options)
+      printer = options.fetch('printer') {@printer}.to_sym
+
+      command_array = build_command(printer, options)
+      stdout, stderr, status = Dir.chdir(@gemfile_dir) { run(*command_array) }
+
+      full_command = command_array.join(" ")
+      if status!=0
+        raise ProfilingError.new("Running the command '#{full_command}' exited with status #{status}", stderr)
+      elsif stdout.length == 0 && stderr.length > 0
+        raise ProfilingError.new("Running the command '#{full_command}' failed to generate a file", stderr)
+      else
+        [printer, stdout]
+      end
+    end
+
+    def build_command(printer, options)
+      ignore       = options.fetch('ignore') { nil }
+      focus        = options.fetch('focus') { nil }
+      nodecount    = options.fetch('nodecount') { nil }
+      nodefraction = options.fetch('nodefraction') { nil }
+
+      args = ["--#{printer}"]
+      args << "--ignore=#{ignore}" if ignore
+      args << "--focus=#{focus}" if focus
+      args << "--nodecount=#{nodecount}" if nodecount
+      args << "--nodefraction=#{nodefraction}" if nodefraction
+      args << PROFILING_DATA_FILE
+      cmd = ["pprof.rb"] + args
+      cmd = ["bundle", "exec"] + cmd if @bundler
+      cmd
+    end
 
     def run(*command)
       out = err = ""
