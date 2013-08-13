@@ -10,7 +10,7 @@ Gemfile:
 
     gem 'rack-perftools_profiler', :require => 'rack/perftools_profiler'
 
-config/environment.rb:
+config/application.rb:
 
     config.middleware.use ::Rack::PerftoolsProfiler, :default_printer => 'gif', :bundler => true
 
