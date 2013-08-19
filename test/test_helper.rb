@@ -20,7 +20,7 @@ end
 ITERATIONS = case RUBY_VERSION
                # Ruby 1.9.x is so fast that we need to add extra iterations
                # to get profiling data
-             when /1\.9\../
+             when /1\.9\../, /2\.0\../
                350_000
              else
                35_000

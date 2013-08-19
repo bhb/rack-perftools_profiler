@@ -224,17 +224,20 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
   context 'when using the text printer' do
 
     should 'return profiling data' do
-      _, _, body = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'text').call(@profiled_request_env)
+      status, _, body = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'text').call(@profiled_request_env)
+      assert_ok status, body
       assert_match(/Total: \d+ samples/, RackResponseBody.new(body).to_s)
     end
 
     should 'have Content-Type text/plain' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@app, :default_printer => 'text').call(@profiled_request_env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@app, :default_printer => 'text').call(@profiled_request_env)
+      assert_ok status, body
       assert_equal "text/plain", headers['Content-Type']
     end
 
     should 'have Content-Length' do
-      _, headers, _ = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'text').call(@profiled_request_env)
+      status, headers, body = Rack::PerftoolsProfiler.new(@slow_app, :default_printer => 'text').call(@profiled_request_env)
+      assert_ok status, body
       assert (headers.fetch('Content-Length').to_i > 500)
     end
 
