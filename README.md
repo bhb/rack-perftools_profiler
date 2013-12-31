@@ -188,14 +188,16 @@ A huge thanks to Aman Gupta for the awesome perftools.rb gem.
 
 The basic idea and initial implementation of the middleware was heavily influenced by Rack::Profiler from rack-contrib.
 
+## Notes on bugs
+
+This project depends on the awesome perftools.rb gem. Before submitting a bug, please determine if the bug is with perftools.rb or with this middleware. For instance, if you are having a problem with installation, make sure `gem install perftools.rb` works. If it does not, please submit a bug report [here](https://github.com/tmm1/perftools.rb/issues).
+
 ## Note on Patches/Pull Requests
 
 * Fork the project.
 * Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
+* Add tests for it. This is important so I don't break it in a future version unintentionally.
+* Commit, do not mess with rakefile, version, or history (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull).
 * Send me a pull request. Bonus points for topic branches.
 
 ## Copyright
