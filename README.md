@@ -28,9 +28,9 @@ You'll need graphviz to generate call graphs using dot (for the GIF printer):
 
 You'll need ps2pdf to generate PDFs (On OS X, ps2pdf comes is installed as part of Ghostscript)
 
-    sudo port install ghostscript  # OSX
-    brew install ghostscript       # Homebrew
-    sudo apt-get install ps2pdf    # Debian/Ubuntu
+    sudo port install ghostscript    # OSX
+    brew install ghostscript         # Homebrew
+    sudo apt-get install ghostscript # Debian/Ubuntu
 
 ## Configuration
 
