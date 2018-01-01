@@ -202,4 +202,4 @@ This project depends on the awesome perftools.rb gem. Before submitting a bug, p
 
 ## Copyright
 
-Copyright (c) 2010-2011 Ben Brinckerhoff. See LICENSE for details.
+Copyright (c) 2010-2018 Ben Brinckerhoff. See LICENSE for details.
