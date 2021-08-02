@@ -1,3 +1,8 @@
+# DEPRECATED
+
+According to [this perftools.rb issue](https://github.com/tmm1/perftools.rb/issues/80), "perftools isn't working or needed on rubies newer than 2.1. You should use stackprof or rblineprof"
+
+
 # Rack::PerftoolsProfiler
 
 Middleware for profiling Rack-compatible apps using [perftools.rb](http://github.com/tmm1/perftools.rb)
